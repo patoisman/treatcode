@@ -12,50 +12,37 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { useUpdatePassword } from "@/features/auth/hooks/useUpdatePassword";
 
 export default function ResetPassword() {
-  const { resetPassword } = useAuth();
+  const updatePassword = useUpdatePassword();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (password.length < 8) {
-      toast.error("Password too short", {
-        description: "Your password must be at least 8 characters.",
-      });
+      toast.error("Password too short", { description: "Must be at least 8 characters." });
       return;
     }
-
     if (password !== confirmPassword) {
-      toast.error("Passwords don't match", {
-        description: "Please make sure both passwords are the same.",
-      });
+      toast.error("Passwords don't match", { description: "Please make sure both passwords are the same." });
       return;
     }
-
-    setIsSubmitting(true);
-
     try {
-      await resetPassword(password);
+      await updatePassword.mutateAsync(password);
       setIsDone(true);
-    } catch {
-      toast.error("Failed to reset password", {
-        description: "Your reset link may have expired. Please request a new one.",
+    } catch (err) {
+      toast.error("Password reset failed", {
+        description: err instanceof Error ? err.message : "Your reset link may have expired.",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background to-secondary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Brand */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <Gift className="h-12 w-12 text-primary mr-3" />
@@ -66,7 +53,6 @@ export default function ResetPassword() {
 
         <Card className="shadow-2xl border-0">
           {isDone ? (
-            /* ── Success state ── */
             <CardContent className="pt-6">
               <div className="text-center space-y-4 py-4">
                 <div className="mx-auto w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center">
@@ -82,62 +68,38 @@ export default function ResetPassword() {
               </div>
             </CardContent>
           ) : (
-            /* ── Password form ── */
             <>
               <CardHeader className="space-y-1 text-center">
                 <CardTitle className="text-2xl">Set new password</CardTitle>
-                <CardDescription>
-                  Choose a strong password for your account.
-                </CardDescription>
+                <CardDescription>Choose a strong password for your account.</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="password">New password</Label>
                     <div className="relative">
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="At least 8 characters"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
-                        required
-                        minLength={8}
-                      />
+                      <Input id="password" type="password" placeholder="At least 8 characters"
+                        value={password} onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10" required minLength={8} disabled={updatePassword.isPending} />
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm new password</Label>
                     <div className="relative">
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="Repeat your new password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
+                      <Input id="confirmPassword" type="password" placeholder="Repeat your new password"
+                        value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pl-10" required disabled={updatePassword.isPending} />
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
-
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                  <Button type="submit" className="w-full" disabled={updatePassword.isPending}>
+                    {updatePassword.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Update Password
                   </Button>
                 </form>
-
                 <div className="mt-6 text-center">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-primary hover:underline"
-                  >
+                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                     Request a new reset link
                   </Link>
                 </div>

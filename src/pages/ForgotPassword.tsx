@@ -12,34 +12,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { useSendPasswordReset } from "@/features/auth/hooks/useSendPasswordReset";
 
 export default function ForgotPassword() {
-  const { sendPasswordResetEmail } = useAuth();
+  const sendReset = useSendPasswordReset();
   const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
     try {
-      await sendPasswordResetEmail(email);
+      await sendReset.mutateAsync(email);
       setIsEmailSent(true);
-    } catch {
+    } catch (err) {
       toast.error("Failed to send reset email", {
-        description: "Please check your email address and try again.",
+        description: err instanceof Error ? err.message : "Please try again.",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background to-secondary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Brand */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <Gift className="h-12 w-12 text-primary mr-3" />
@@ -50,7 +44,6 @@ export default function ForgotPassword() {
 
         <Card className="shadow-2xl border-0">
           {isEmailSent ? (
-            /* ── Confirmation state ── */
             <CardContent className="pt-6">
               <div className="text-center space-y-4 py-4">
                 <div className="mx-auto w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center">
@@ -58,21 +51,16 @@ export default function ForgotPassword() {
                 </div>
                 <h2 className="text-xl font-semibold">Check your email</h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  We've sent a password reset link to{" "}
+                  We've sent a reset link to{" "}
                   <span className="font-medium text-foreground">{email}</span>.
                   It may take a few minutes to arrive.
                 </p>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => setIsEmailSent(false)}
-                >
+                <Button variant="outline" className="w-full mt-4" onClick={() => setIsEmailSent(false)}>
                   Send again
                 </Button>
               </div>
             </CardContent>
           ) : (
-            /* ── Email form state ── */
             <>
               <CardHeader className="space-y-1 text-center">
                 <CardTitle className="text-2xl">Reset your password</CardTitle>
@@ -85,32 +73,19 @@ export default function ForgotPassword() {
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
+                      <Input id="email" type="email" placeholder="Enter your email"
+                        value={email} onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10" required disabled={sendReset.isPending} />
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
-
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                  <Button type="submit" className="w-full" disabled={sendReset.isPending}>
+                    {sendReset.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Send Reset Link
                   </Button>
                 </form>
-
                 <div className="mt-6 text-center">
-                  <Link
-                    to="/auth"
-                    className="inline-flex items-center text-sm text-primary hover:underline"
-                  >
+                  <Link to="/auth" className="inline-flex items-center text-sm text-primary hover:underline">
                     <ArrowLeft className="mr-1 h-3 w-3" />
                     Back to sign in
                   </Link>

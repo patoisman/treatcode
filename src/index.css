@@ -101,6 +101,9 @@
     --sidebar-accent-foreground: oklch(0.21 0.039 266);
     --sidebar-border: oklch(0.93 0.013 255);
     --sidebar-ring: oklch(0.38 0.117 255);
+
+    /* Brand gradient: banking blue → indigo-purple */
+    --gradient-brand: linear-gradient(to right, oklch(0.38 0.117 255), oklch(0.42 0.19 293));
 }
 
 /* ─── Dark mode ─────────────────────────────────────────────────────────────── */

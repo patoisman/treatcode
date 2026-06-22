@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { AdminRoute } from "@/components/layout/AdminRoute";
 
 const Index = lazy(() => import("@/pages/Index"));
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -43,10 +44,10 @@ export default function App() {
             element={<ProtectedRoute><DirectDebit /></ProtectedRoute>}
           />
 
-          {/* Protected — admin */}
+          {/* Protected — admin only */}
           <Route
             path="/admin"
-            element={<ProtectedRoute><Admin /></ProtectedRoute>}
+            element={<AdminRoute><Admin /></AdminRoute>}
           />
 
           {/* Catch-all */}

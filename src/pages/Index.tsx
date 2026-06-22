@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { useAuth } from "@/hooks/useAuth";
+import { useSession } from "@/features/auth/hooks/useSession";
 
 export default function Index() {
-  const { isAuthenticated } = useAuth();
+  const { session } = useSession();
+  const isAuthenticated = !!session;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background to-secondary">
