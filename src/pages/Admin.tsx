@@ -206,7 +206,7 @@ export default function Admin() {
 
   return (
     <AppLayout variant="solid">
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         {/* Page header */}
         <div className="mb-8 flex items-center gap-3">
           <ShieldAlert className="h-8 w-8 text-primary shrink-0" />

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { CreditCard, Calendar, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Calendar, Coins } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,29 +25,25 @@ import {
 import { DUMMY_DIRECT_DEBIT } from "@/data/dummy";
 import type { DirectDebitSettings } from "@/types";
 
-const MANDATE_STATUS_CONFIG: Record<
-  DirectDebitSettings["mandate_status"],
-  { label: string; className: string }
-> = {
-  active: {
-    label: "Active",
-    className: "bg-green-100 text-green-700 border-green-200",
-  },
-  pending: {
-    label: "Pending",
-    className: "bg-amber-100 text-amber-700 border-amber-200",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-gray-100 text-gray-600 border-gray-200",
-  },
-};
-
 function formatCurrency(pence: number) {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
   }).format(pence / 100);
+}
+
+function getOrdinalSuffix(day: number): string {
+  if (day > 3 && day < 21) return "th";
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
 }
 
 interface DirectDebitStatusProps {
@@ -71,8 +66,6 @@ export function DirectDebitStatus({ onCancelled }: DirectDebitStatusProps) {
     );
   }
 
-  const statusCfg = MANDATE_STATUS_CONFIG[settings.mandate_status];
-
   const handleCancel = async () => {
     setIsCancelling(true);
     await new Promise((r) => setTimeout(r, 1000));
@@ -83,80 +76,135 @@ export function DirectDebitStatus({ onCancelled }: DirectDebitStatusProps) {
     onCancelled?.();
   };
 
+  const getStatusBadge = () => {
+    if (settings.mandate_status === "active") {
+      return (
+        <Badge className="bg-green-500">
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          Active
+        </Badge>
+      );
+    }
+    if (settings.mandate_status === "pending") {
+      return (
+        <Badge className="bg-yellow-500">
+          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+          Pending
+        </Badge>
+      );
+    }
+    if (settings.mandate_status === "cancelled") {
+      return (
+        <Badge variant="destructive">
+          <XCircle className="h-3 w-3 mr-1" />
+          Cancelled
+        </Badge>
+      );
+    }
+    return <Badge variant="outline">Unknown</Badge>;
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Direct Debit
-            </CardTitle>
-            <CardDescription className="mt-1">
-              Active since{" "}
-              {format(new Date(settings.created_at), "d MMMM yyyy")}
-            </CardDescription>
-          </div>
-          <Badge variant="outline" className={statusCfg.className}>
-            {statusCfg.label}
-          </Badge>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5" />
+            Direct Debit
+          </CardTitle>
+          {getStatusBadge()}
         </div>
+        <CardDescription>Your monthly Treatcode deposits</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Details */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg bg-secondary/30 space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">
-              Monthly amount
-            </p>
-            <p className="text-2xl font-bold text-primary">
+        {/* Current Settings */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Monthly Amount</p>
+            <p className="text-2xl font-bold">
               {formatCurrency(settings.monthly_amount)}
             </p>
           </div>
-          <div className="p-4 rounded-lg bg-secondary/30 space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Collection day
+
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              Collection Day
             </p>
             <p className="text-2xl font-bold">
               {settings.collection_day}
-              <span className="text-sm font-normal text-muted-foreground ml-1">
-                of each month
-              </span>
+              {getOrdinalSuffix(settings.collection_day)}
             </p>
+            <p className="text-xs text-muted-foreground">of each month</p>
           </div>
         </div>
 
-        {/* Cancel */}
+        {/* Status Info */}
+        {settings.mandate_status === "pending" && (
+          <div className="p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+            <p className="text-sm font-medium text-yellow-900">
+              Setup In Progress
+            </p>
+            <p className="text-xs text-yellow-700 mt-1">
+              Please complete the GoCardless setup process to activate your
+              Direct Debit
+            </p>
+          </div>
+        )}
+
+        {settings.mandate_status === "active" && (
+          <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+            <p className="text-sm font-medium text-green-900">
+              ✓ Direct Debit Active
+            </p>
+            <p className="text-xs text-green-700 mt-1">
+              Your next deposit of {formatCurrency(settings.monthly_amount)} will
+              be collected on the {settings.collection_day}
+              {getOrdinalSuffix(settings.collection_day)}
+            </p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
         {settings.mandate_status !== "cancelled" && (
-          <div className="pt-2">
+          <div className="flex gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  disabled={isCancelling}
+                >
                   Cancel Direct Debit
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Cancel Direct Debit?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will cancel your monthly {formatCurrency(settings.monthly_amount)}{" "}
-                    Direct Debit. No further collections will be made. Your
-                    existing Treatcode balance will not be affected.
+                  <AlertDialogDescription className="space-y-2">
+                    <p>This will stop all future monthly deposits.</p>
+                    <p className="font-medium">
+                      Your current Treatcode balance will remain available.
+                    </p>
+                    <p>You can set up Direct Debit again at any time.</p>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Keep Direct Debit</AlertDialogCancel>
+                  <AlertDialogCancel>Keep Active</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleCancel}
-                    className="bg-destructive text-white hover:bg-destructive/90"
+                    className="bg-red-600 hover:bg-red-700"
                     disabled={isCancelling}
                   >
-                    {isCancelling && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isCancelling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      "Yes, Cancel"
                     )}
-                    Yes, cancel it
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

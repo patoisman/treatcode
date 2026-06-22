@@ -1,10 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Copy, Check } from "lucide-react";
+import { Copy, CheckCircle, XCircle, Clock, Ticket, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,29 +23,44 @@ import {
 import { DUMMY_REDEMPTIONS } from "@/data/dummy";
 import type { Redemption } from "@/types";
 
-const STATUS_CONFIG: Record<
-  Redemption["status"],
-  { label: string; className: string }
-> = {
-  pending: {
-    label: "Pending",
-    className: "bg-amber-100 text-amber-700 border-amber-200",
-  },
-  fulfilled: {
-    label: "Fulfilled",
-    className: "bg-green-100 text-green-700 border-green-200",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-gray-100 text-gray-600 border-gray-200",
-  },
-};
-
 function formatCurrency(pence: number) {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
   }).format(pence / 100);
+}
+
+function formatDate(dateString: string | null) {
+  if (!dateString) return "—";
+  return format(new Date(dateString), "dd MMM yyyy");
+}
+
+function getStatusBadge(status: Redemption["status"]) {
+  switch (status) {
+    case "fulfilled":
+      return (
+        <Badge className="bg-green-500">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Ready to use
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge className="bg-yellow-500">
+          <Clock className="h-3 w-3 mr-1" />
+          Pending
+        </Badge>
+      );
+    case "cancelled":
+      return (
+        <Badge variant="outline">
+          <XCircle className="h-3 w-3 mr-1" />
+          Cancelled
+        </Badge>
+      );
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
 }
 
 function CopyButton({ code }: { code: string }) {
@@ -47,22 +69,18 @@ function CopyButton({ code }: { code: string }) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success("Copied to clipboard");
+    toast.success("Copied!", { description: "Voucher code copied to clipboard." });
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <Button
       variant="ghost"
-      size="icon"
-      className="h-6 w-6 shrink-0"
+      size="sm"
+      className="h-7 w-7 p-0"
       onClick={handleCopy}
     >
-      {copied ? (
-        <Check className="h-3 w-3 text-accent" />
-      ) : (
-        <Copy className="h-3 w-3" />
-      )}
+      <Copy className={`h-3.5 w-3.5 ${copied ? "text-accent" : ""}`} />
       <span className="sr-only">Copy voucher code</span>
     </Button>
   );
@@ -76,69 +94,102 @@ export function RedemptionsHistory() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <Card>
+        <CardContent className="pt-6 flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
     );
   }
 
   if (redemptions.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p className="font-medium">No redemptions yet</p>
-        <p className="text-sm mt-1">
-          Your voucher redemption history will appear here.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Redemptions</CardTitle>
+          <CardDescription>
+            Vouchers you have requested will appear here
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <Ticket className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No redemptions yet</p>
+            <p className="text-sm mt-1">
+              Request a voucher above to get started
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-lg border border-border overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Brand</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Voucher Code</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {redemptions.map((redemption) => {
-            const statusCfg = STATUS_CONFIG[redemption.status];
-            return (
-              <TableRow key={redemption.id}>
-                <TableCell className="text-sm text-muted-foreground">
-                  {format(new Date(redemption.created_at), "d MMM yyyy")}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {redemption.brand_name}
-                </TableCell>
-                <TableCell>{formatCurrency(redemption.amount)}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={statusCfg.className}>
-                    {statusCfg.label}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {redemption.voucher_code ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs tracking-widest text-muted-foreground">
-                        {redemption.voucher_code}
-                      </span>
-                      <CopyButton code={redemption.voucher_code} />
-                    </div>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
-                  )}
-                </TableCell>
+    <Card>
+      <CardHeader>
+        <CardTitle>Your Redemptions</CardTitle>
+        <CardDescription>
+          {redemptions.length}{" "}
+          {redemptions.length === 1 ? "redemption" : "redemptions"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Brand</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Voucher Code</TableHead>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {redemptions.map((redemption) => (
+                <TableRow key={redemption.id}>
+                  <TableCell className="font-medium whitespace-nowrap">
+                    {formatDate(redemption.created_at)}
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    {redemption.brand_name}
+                  </TableCell>
+                  <TableCell className="font-semibold">
+                    {formatCurrency(redemption.amount)}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(redemption.status)}
+                  </TableCell>
+                  <TableCell>
+                    {redemption.status === "fulfilled" &&
+                    redemption.voucher_code ? (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <code className="bg-purple-50 border border-purple-200 text-purple-800 font-mono font-bold px-3 py-1 rounded text-sm tracking-widest">
+                            {redemption.voucher_code}
+                          </code>
+                          <CopyButton code={redemption.voucher_code} />
+                        </div>
+                        {redemption.voucher_instructions && (
+                          <p className="text-xs text-muted-foreground">
+                            {redemption.voucher_instructions}
+                          </p>
+                        )}
+                      </div>
+                    ) : redemption.status === "pending" ? (
+                      <span className="text-sm text-muted-foreground">
+                        We'll email you when ready
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

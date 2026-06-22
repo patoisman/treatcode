@@ -70,7 +70,7 @@ export default function Redemptions() {
 
   return (
     <AppLayout variant="solid">
-      <main className="container mx-auto px-4 pt-24 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         {/* Header */}
         <div className="mb-8">
           <Button
@@ -148,10 +148,7 @@ export default function Redemptions() {
           </div>
 
           {/* Redemption history */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Redemption History</h2>
-            <RedemptionsHistory />
-          </div>
+          <RedemptionsHistory />
         </div>
       </main>
 

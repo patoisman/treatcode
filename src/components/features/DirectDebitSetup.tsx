@@ -87,7 +87,7 @@ export function DirectDebitSetup({ onSuccess }: DirectDebitSetupProps) {
         : "";
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="h-5 w-5" />
