@@ -205,7 +205,7 @@ export default function Admin() {
   if (!user?.is_admin) return null;
 
   return (
-    <AppLayout>
+    <AppLayout variant="solid">
       <main className="container mx-auto px-4 pt-24 pb-12">
         {/* Page header */}
         <div className="mb-8 flex items-center gap-3">

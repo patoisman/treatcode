@@ -69,7 +69,7 @@ export default function Redemptions() {
   };
 
   return (
-    <AppLayout>
+    <AppLayout variant="solid">
       <main className="container mx-auto px-4 pt-24 pb-12">
         {/* Header */}
         <div className="mb-8">

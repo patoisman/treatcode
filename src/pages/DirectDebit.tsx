@@ -18,7 +18,7 @@ export default function DirectDebit() {
   const [showStatus, setShowStatus] = useState(hasMandante);
 
   return (
-    <AppLayout>
+    <AppLayout variant="solid">
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="mb-8">
           <Button
@@ -29,20 +29,24 @@ export default function DirectDebit() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl font-bold mt-4">Direct Debit</h1>
+          <h1 className="text-3xl font-bold mt-4">Direct Debit Management</h1>
           <p className="text-muted-foreground mt-1">
-            {showStatus
-              ? "Your active monthly deposit mandate."
-              : "Set up a monthly deposit to grow your Treatcode balance."}
+            Set up and manage your Direct Debit payments
           </p>
         </div>
 
-        {showStatus ? (
-          <DirectDebitStatus onCancelled={() => setShowStatus(false)} />
-        ) : (
-          <DirectDebitSetup onSuccess={() => setShowStatus(true)} />
-        )}
+        <div className="space-y-6">
+          <div className="bg-card p-6 rounded-xl shadow-xs border border-border">
+            <h2 className="text-xl font-semibold mb-6">Payment Setup</h2>
+            {showStatus ? (
+              <DirectDebitStatus onCancelled={() => setShowStatus(false)} />
+            ) : (
+              <DirectDebitSetup onSuccess={() => setShowStatus(true)} />
+            )}
+          </div>
+        </div>
       </main>
     </AppLayout>
   );
 }
+

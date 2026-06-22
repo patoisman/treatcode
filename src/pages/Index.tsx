@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   Gift,
-  CreditCard,
   PiggyBank,
   CheckCircle,
   ArrowRight,
