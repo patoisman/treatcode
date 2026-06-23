@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
@@ -8,6 +8,8 @@ const Index = lazy(() => import("@/pages/Index"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const WalletSetupCallback = lazy(() => import("@/pages/WalletSetupCallback"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Deposits = lazy(() => import("@/pages/Deposits"));
 const Redemptions = lazy(() => import("@/pages/Redemptions"));
@@ -26,7 +28,14 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Protected — dashboard */}
+          {/* Onboarding — accessible to authenticated users at any onboarding step */}
+          <Route path="/onboarding" element={<Onboarding />} />
+          {/* GoCardless exit_uri — user cancelled the GC flow */}
+          <Route path="/wallet/setup" element={<Navigate to="/onboarding" replace />} />
+          {/* GoCardless redirect_uri — user completed the GC flow */}
+          <Route path="/wallet/setup/callback" element={<WalletSetupCallback />} />
+
+          {/* Protected — requires session + setup_complete */}
           <Route
             path="/dashboard"
             element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
