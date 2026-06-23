@@ -10,7 +10,7 @@ export function AppLayout({ children, variant = "gradient" }: AppLayoutProps) {
   const bgClass =
     variant === "gradient"
       ? "bg-linear-to-br from-background to-secondary"
-      : "bg-slate-50 dark:bg-background";
+      : "bg-muted/30 dark:bg-background";
   return (
     <div className={`min-h-screen ${bgClass}`}>
       <Header />

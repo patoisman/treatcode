@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRedemptions } from "../hooks/useRedemptions";
 import { RedemptionRow } from "./RedemptionRow";
 
@@ -7,9 +7,20 @@ export function RedemptionHistory() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
+      <ul className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <li
+            key={i}
+            className="flex items-center justify-between rounded-lg border border-border bg-card p-4"
+          >
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </li>
+        ))}
+      </ul>
     );
   }
 

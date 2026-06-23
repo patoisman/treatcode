@@ -39,15 +39,15 @@ export default function Index() {
 
           <div className="flex flex-wrap justify-center gap-4 text-muted-foreground md:text-lg mt-6 font-medium">
             <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+              <CheckCircle className="w-4 h-4 mr-2 text-accent" />
               No credit cards
             </span>
             <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+              <CheckCircle className="w-4 h-4 mr-2 text-accent" />
               No Buy Now Pay Later
             </span>
             <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+              <CheckCircle className="w-4 h-4 mr-2 text-accent" />
               No touching savings
             </span>
           </div>
@@ -95,12 +95,12 @@ export default function Index() {
 
             {/* Mock UI preview */}
             <div className="relative">
-              <div className="aspect-square rounded-3xl bg-linear-to-tr from-primary/20 to-purple-500/20 p-8 flex items-center justify-center">
+              <div className="aspect-square rounded-3xl bg-linear-to-tr from-primary/20 to-accent/20 p-8 flex items-center justify-center">
                 <div className="grid gap-6 w-full max-w-sm">
                   <Card className="bg-background/80 backdrop-blur-xs border-0 shadow-sm p-5">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 text-blue-600 rounded-full">
+                        <div className="p-2 bg-primary/10 text-primary rounded-full">
                           <TrendingUp className="w-5 h-5" />
                         </div>
                         <div>
@@ -112,7 +112,7 @@ export default function Index() {
                           </p>
                         </div>
                       </div>
-                      <div className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                      <div className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded-full">
                         +£50/mo
                       </div>
                     </div>
@@ -231,8 +231,8 @@ export default function Index() {
       {/* ── Social proof / CTA ────────────────────────────────────────────── */}
       <section className="py-16 md:py-24 bg-background relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-purple-100 rounded-full blur-[100px]" />
-          <div className="absolute bottom-10 right-10 w-64 h-64 bg-blue-100 rounded-full blur-[100px]" />
+          <div className="absolute top-10 left-10 w-64 h-64 bg-primary/15 rounded-full blur-[100px]" />
+          <div className="absolute bottom-10 right-10 w-64 h-64 bg-accent/15 rounded-full blur-[100px]" />
         </div>
 
         <div className="container mx-auto px-4 text-center relative z-10">

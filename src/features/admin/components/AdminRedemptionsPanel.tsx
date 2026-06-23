@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAllRedemptions } from "../hooks/useAllRedemptions";
 import { matchesFilter } from "../utils";
 import { RedemptionTable } from "./RedemptionTable";
@@ -28,8 +28,19 @@ export function AdminRedemptionsPanel() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-72" />
+        <div className="rounded-lg border border-border bg-card divide-y divide-border">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-8 w-24" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

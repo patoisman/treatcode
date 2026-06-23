@@ -54,6 +54,11 @@ export default function WalletSetupCallback() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
+    // Mount-once on purpose: this kicks off the confirm/poll loop a single time
+    // when the GoCardless redirect lands. `confirmBilling` is re-created each
+    // render and `searchParams`/`navigate` are read once at mount — including
+    // them would restart the poll loop, which we must not do.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (pageState === "loading") {

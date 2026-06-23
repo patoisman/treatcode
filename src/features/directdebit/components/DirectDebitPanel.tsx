@@ -1,4 +1,3 @@
-import { Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -6,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useMandate } from "../hooks/useMandate";
 import { isMandateLive } from "../utils";
 import { MandateStatus } from "./MandateStatus";
@@ -18,8 +18,14 @@ export function DirectDebitPanel() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        ))}
       </div>
     );
   }

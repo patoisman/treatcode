@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { FullPageSpinner } from "@/components/common/FullPageSpinner";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AdminRoute } from "@/components/layout/AdminRoute";
 
@@ -19,8 +21,8 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export default function App() {
   return (
-    <>
-      <Suspense fallback={null}>
+    <ErrorBoundary>
+      <Suspense fallback={<FullPageSpinner />}>
         <Routes>
           {/* Public */}
           <Route path="/" element={<Index />} />
@@ -64,6 +66,6 @@ export default function App() {
         </Routes>
       </Suspense>
       <Toaster richColors />
-    </>
+    </ErrorBoundary>
   );
 }

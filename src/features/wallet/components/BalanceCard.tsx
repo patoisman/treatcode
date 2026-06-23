@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Loader2, Wallet } from "lucide-react";
+import { Eye, EyeOff, Wallet } from "lucide-react";
 import { formatPence } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useBalance } from "../hooks/useBalance";
 
 export function BalanceCard() {
@@ -40,7 +41,7 @@ export function BalanceCard() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Skeleton className="h-10 w-48" />
         ) : isError ? (
           <p className="text-sm text-destructive">
             Couldn't load your balance. Please refresh and try again.

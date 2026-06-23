@@ -1,4 +1,3 @@
-import { Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -6,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLedgerEntries } from "../hooks/useLedgerEntries";
 import { LedgerRow } from "./LedgerRow";
 
@@ -20,9 +20,17 @@ export function LedgerList() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
+          <ul className="divide-y divide-border">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <li key={i} className="flex items-center justify-between py-3">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-4 w-16" />
+              </li>
+            ))}
+          </ul>
         ) : isError ? (
           <p className="py-8 text-center text-sm text-destructive">
             Couldn't load your activity. Please refresh and try again.
