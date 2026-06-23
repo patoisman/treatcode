@@ -21,3 +21,11 @@ const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
 export function formatShortDate(iso: string): string {
   return SHORT_DATE.format(new Date(iso));
 }
+
+/** Format a day-of-month integer with its ordinal suffix (e.g. 1 → "1st", 23 → "23rd"). */
+export function formatDayOfMonth(day: number): string {
+  const rem100 = day % 100;
+  if (rem100 >= 11 && rem100 <= 13) return `${day}th`;
+  const suffix = { 1: "st", 2: "nd", 3: "rd" }[day % 10] ?? "th";
+  return `${day}${suffix}`;
+}

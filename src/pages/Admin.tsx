@@ -1,7 +1,7 @@
 import { ShieldAlert } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AdminRedemptionsPanel } from "@/features/admin/components/AdminRedemptionsPanel";
 
-// Admin redemption management implemented in Phase 7
 export default function Admin() {
   return (
     <AppLayout variant="solid">
@@ -13,6 +13,7 @@ export default function Admin() {
             <p className="text-muted-foreground mt-0.5">Manage voucher redemption requests</p>
           </div>
         </div>
+        <AdminRedemptionsPanel />
       </main>
     </AppLayout>
   );

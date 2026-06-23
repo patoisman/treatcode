@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { DirectDebitPanel } from "@/features/directdebit/components/DirectDebitPanel";
 
-// Direct Debit setup and management implemented in Phases 2 & 4
 export default function DirectDebit() {
   const navigate = useNavigate();
 
@@ -18,6 +18,7 @@ export default function DirectDebit() {
           <h1 className="text-3xl font-bold mt-4">Direct Debit Management</h1>
           <p className="text-muted-foreground mt-1">Set up and manage your Direct Debit payments</p>
         </div>
+        <DirectDebitPanel />
       </main>
     </AppLayout>
   );
