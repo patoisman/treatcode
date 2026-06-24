@@ -1,4 +1,4 @@
-import { Gift } from "lucide-react";
+import { BrandMark } from "@/components/common/BrandMark";
 
 export function Footer() {
   return (
@@ -7,7 +7,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <Gift className="h-6 w-6" />
+            <BrandMark variant="current" className="h-6 w-6" />
             <span className="text-xl font-bold">Treatcode</span>
           </div>
 

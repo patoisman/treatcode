@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gift, LogOut, Menu, User, LogIn, ShieldCheck } from "lucide-react";
+import { BrandMark } from "@/components/common/BrandMark";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +49,7 @@ export function Header() {
           className="flex items-center space-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => handleNavigate(isAuthenticated ? "/dashboard" : "/")}
         >
-          <Gift className="h-8 w-8 text-primary" />
+          <BrandMark className="h-8 w-8" />
           <span
             className="text-3xl font-bold bg-clip-text text-transparent"
             style={{ background: "var(--gradient-brand)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}

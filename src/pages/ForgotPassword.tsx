@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Gift, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Loader2, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { BrandMark } from "@/components/common/BrandMark";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Gift className="h-12 w-12 text-primary mr-3" />
+            <BrandMark className="h-12 w-12 mr-3" />
             <h1 className="text-4xl font-bold text-primary">Treatcode</h1>
           </div>
           <p className="text-muted-foreground">Your guilt-free spending stash</p>

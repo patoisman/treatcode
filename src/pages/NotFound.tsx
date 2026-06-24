@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Gift, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { BrandMark } from "@/components/common/BrandMark";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
@@ -7,7 +8,7 @@ export default function NotFound() {
     <div className="min-h-screen bg-linear-to-br from-background to-secondary flex items-center justify-center p-4">
       <div className="text-center space-y-6 max-w-md">
         <div className="flex items-center justify-center mb-2">
-          <Gift className="h-12 w-12 text-primary" />
+          <BrandMark className="h-12 w-12" />
         </div>
 
         <div className="space-y-2">

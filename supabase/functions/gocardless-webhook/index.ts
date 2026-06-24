@@ -96,17 +96,22 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
-function subscriptionStartDate(): string {
-  // Spec §2.4: date_trunc('month', current_date + interval '35 days') — the 1st of
-  // the month CONTAINING today+35 days. The previous version took the 1st of the
-  // month AFTER that, pushing every subscription a month late and out of sync with
-  // the "Monthly from [date]" the user is shown on the setup screen.
-  const now = new Date();
-  const plus35 = new Date(Date.UTC(
-    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 35,
-  ));
-  const first = new Date(Date.UTC(plus35.getUTCFullYear(), plus35.getUTCMonth(), 1));
-  return first.toISOString().split("T")[0];
+// Anchor the recurring collection to the day the customer joined (their first
+// deposit / IBP date), clamped to 28 so the day exists in every month. We then
+// create the subscription WITHOUT a start_date: GoCardless schedules the first
+// payment on the first occurrence of this day-of-month on or after the mandate's
+// next chargeable date, which is always NEXT month's anniversary — this month's has
+// already passed by the time the BACS mandate is chargeable. That keeps the gap
+// between the IBP first deposit and the first subscription collection at ~one month
+// for EVERY signup date.
+//
+// This replaces the old `1st-of-month(now+35d)` + `day_of_month: 1` logic, which
+// anchored to mandate-active time (not the IBP date) and forced every first charge
+// onto the 1st — charging mid-month signups again as little as 8 days after their
+// first deposit (the double-charge bug confirmed against live data).
+function subscriptionDayOfMonth(anchor: Date): number {
+  const day = anchor.getUTCDate();
+  return day > 28 ? 28 : day;
 }
 
 function poundsDisplay(pence: number) {
@@ -539,7 +544,21 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
         .select("pledge_amount_pence").eq("id", mandate.user_id).single();
       if (!profile?.pledge_amount_pence) return;
 
-      const startDate = subscriptionStartDate();
+      // Anchor the billing day to the customer's first-deposit (IBP) date so the
+      // first subscription collection lands ~one month later. The IBP is the user's
+      // earliest payment (subscription_id IS NULL) and always exists by the time the
+      // BACS mandate goes active. Fall back to "now" only if it's somehow missing.
+      const { data: ibp } = await admin.from("gc_payments")
+        .select("charge_date")
+        .eq("user_id", mandate.user_id)
+        .is("subscription_id", null)
+        .order("charge_date", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      const anchor = ibp?.charge_date
+        ? new Date(`${ibp.charge_date}T00:00:00Z`)
+        : new Date();
+      const dayOfMonth = subscriptionDayOfMonth(anchor);
 
       // Guard #2 (race / partial-failure safe): a deterministic Idempotency-Key
       // keyed on the mandate means GoCardless collapses duplicate POSTs to a single
@@ -551,8 +570,9 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
         {
           subscriptions: {
             amount: profile.pledge_amount_pence, currency: "GBP",
-            interval_unit: "monthly", day_of_month: 1, start_date: startDate,
+            interval_unit: "monthly", day_of_month: dayOfMonth,
             name: "Treatcode Monthly Deposit",
+            metadata: { app_user_id: mandate.user_id },
             links: { mandate: mandateId },
           },
         },
@@ -572,8 +592,9 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
         {
           id: sub.id, user_id: mandate.user_id, mandate_id: mandateId,
           amount_pence: profile.pledge_amount_pence, currency: "GBP",
-          interval_unit: "monthly", day_of_month: 1,
-          start_date: sub.start_date ?? startDate,
+          interval_unit: "monthly",
+          day_of_month: sub.day_of_month ?? dayOfMonth,
+          start_date: sub.start_date ?? null,
           status: sub.status ?? "active", raw: sub,
         },
         { onConflict: "id" }

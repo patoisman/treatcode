@@ -78,20 +78,6 @@ async function gcPost(path: string, body: unknown) {
   return res.json();
 }
 
-// Spec §2.4: the 1st of the month CONTAINING today+35 days. Must match the same
-// helper in gocardless-webhook exactly — a divergence here re-introduces the
-// "subscription starts a month late" bug (the old month+1 version) on the
-// amendment-exceeded re-create path, putting the re-created subscription out of
-// sync with the "Monthly from [date]" the user was shown at setup.
-function subscriptionStartDate(): string {
-  const now = new Date();
-  const plus35 = new Date(Date.UTC(
-    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 35,
-  ));
-  const first = new Date(Date.UTC(plus35.getUTCFullYear(), plus35.getUTCMonth(), 1));
-  return first.toISOString().split("T")[0];
-}
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -129,7 +115,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: sub } = await admin
       .from("gc_subscriptions")
-      .select("id, mandate_id, status, amendment_count")
+      .select("id, mandate_id, status, amendment_count, day_of_month")
       .eq("user_id", user.id)
       .in("status", ["active", "paused"])
       .order("created_at", { ascending: false })
@@ -162,15 +148,20 @@ Deno.serve(async (req: Request) => {
             subscriptions: {},
           });
 
-          const startDate = subscriptionStartDate();
+          // Preserve the customer's established collection day so the re-created
+          // subscription keeps the same monthly cadence. Omit start_date —
+          // GoCardless resumes on the next occurrence of that day on or after the
+          // mandate's next chargeable date (always the next anniversary), so the
+          // re-create can't pull a collection forward into a short gap.
+          const dayOfMonth = sub.day_of_month ?? 1;
           const newSubData = await gcPost("/subscriptions", {
             subscriptions: {
               amount: newAmountPence,
               currency: "GBP",
               interval_unit: "monthly",
-              day_of_month: 1,
-              start_date: startDate,
+              day_of_month: dayOfMonth,
               name: "Treatcode Monthly Deposit",
+              metadata: { app_user_id: user.id },
               links: { mandate: sub.mandate_id },
             },
           });
@@ -190,8 +181,8 @@ Deno.serve(async (req: Request) => {
               amendment_count: 0,
               currency: "GBP",
               interval_unit: "monthly",
-              day_of_month: 1,
-              start_date: newSub.start_date ?? startDate,
+              day_of_month: newSub.day_of_month ?? dayOfMonth,
+              start_date: newSub.start_date ?? null,
               status: newSub.status ?? "active",
               raw: newSub,
             },

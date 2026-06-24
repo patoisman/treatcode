@@ -1,0 +1,203 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.page { padding: 1.5rem 0 2rem; font-family: var(--font-sans); }
+.sr-only { position: absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+.row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 14px; padding: 1.25rem 0.75rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.12s; }
+.card:hover { border-color: var(--color-border-secondary); }
+.card.active { border: 2px solid #534AB7; background: #EEEDFE; }
+.name { font-size: 11px; color: var(--color-text-secondary); text-align: center; line-height: 1.4; }
+.card.active .name { color: #534AB7; }
+.pal-row { display: flex; gap: 7px; }
+.pal-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border-color 0.1s; }
+.pal-dot.on { border-color: var(--color-text-primary); }
+.bottom { display: flex; gap: 10px; justify-content: center; margin-top: 0.5rem; flex-wrap: wrap; }
+button.b { padding: 7px 16px; border-radius: 999px; border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 13px; cursor: pointer; color: var(--color-text-primary); }
+button.b:hover { background: var(--color-background-secondary); }
+button.b.cta { background: #534AB7; color: #EEEDFE; border-color: #534AB7; }
+button.b.cta:hover { background: #3C3489; }
+</style>
+
+<div class="page">
+<h2 class="sr-only">Gift box logo variations for Treatcode — six modified gift icon designs with wordmark</h2>
+
+<div class="row" id="r1"></div>
+<div class="row" id="r2"></div>
+
+<div class="bottom">
+  <button class="b" onclick="toggleSize()">Toggle size</button>
+  <button class="b cta" onclick="doRefine()">Refine this one ↗</button>
+</div>
+</div>
+
+<script>
+const PALS = [
+  { bg:'#534AB7', ribbon:'#3C3489', lid:'#7F77DD', word:'#26215C' },
+  { bg:'#0F6E56', ribbon:'#085041', lid:'#1D9E75', word:'#04342C' },
+  { bg:'#D85A30', ribbon:'#993C1D', lid:'#F0997B', word:'#4A1B0C' },
+  { bg:'#2C2C2A', ribbon:'#444441', lid:'#888780', word:'#2C2C2A' },
+];
+const PAL_COLORS = ['#534AB7','#0F6E56','#D85A30','#2C2C2A'];
+
+const VARIANTS = [
+  {
+    name: 'Classic outline',
+    note: 'Clean Lucide-style, slightly rounder box',
+    draw(S, p) {
+      const sw = S*0.055;
+      return `
+        <rect x="${S*.15}" y="${S*.38}" width="${S*.7}" height="${S*.52}" rx="${S*.08}" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+        <rect x="${S*.1}" y="${S*.3}" width="${S*.8}" height="${S*.12}" rx="${S*.04}" fill="none" stroke="${p.bg}" stroke-width="${sw}"/>
+        <line x1="${S*.5}" y1="${S*.3}" x2="${S*.5}" y2="${S*.9}" stroke="${p.bg}" stroke-width="${sw}"/>
+        <path d="M${S*.5} ${S*.3} C${S*.5} ${S*.14} ${S*.28} ${S*.1} ${S*.28} ${S*.24} C${S*.28} ${S*.3} ${S*.5} ${S*.3} ${S*.5} ${S*.3}Z" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+        <path d="M${S*.5} ${S*.3} C${S*.5} ${S*.14} ${S*.72} ${S*.1} ${S*.72} ${S*.24} C${S*.72} ${S*.3} ${S*.5} ${S*.3} ${S*.5} ${S*.3}Z" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+      `;
+    }
+  },
+  {
+    name: 'Filled box, outline ribbon',
+    note: 'Two-tone — body filled, bow stays open',
+    draw(S, p) {
+      const sw = S*0.05;
+      return `
+        <rect x="${S*.15}" y="${S*.4}" width="${S*.7}" height="${S*.5}" rx="${S*.08}" fill="${p.bg}" stroke="${p.bg}" stroke-width="${sw*.5}"/>
+        <rect x="${S*.1}" y="${S*.32}" width="${S*.8}" height="${S*.12}" rx="${S*.04}" fill="${p.lid}" stroke="${p.bg}" stroke-width="${sw*.5}"/>
+        <line x1="${S*.5}" y1="${S*.32}" x2="${S*.5}" y2="${S*.9}" stroke="white" stroke-width="${sw}"/>
+        <line x1="${S*.15}" y1="${S*.44}" x2="${S*.85}" y2="${S*.44}" stroke="white" stroke-width="${sw*.6}"/>
+        <path d="M${S*.5} ${S*.32} C${S*.5} ${S*.16} ${S*.28} ${S*.12} ${S*.28} ${S*.26} C${S*.28} ${S*.32} ${S*.5} ${S*.32} ${S*.5} ${S*.32}Z" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+        <path d="M${S*.5} ${S*.32} C${S*.5} ${S*.16} ${S*.72} ${S*.12} ${S*.72} ${S*.26} C${S*.72} ${S*.32} ${S*.5} ${S*.32} ${S*.5} ${S*.32}Z" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+      `;
+    }
+  },
+  {
+    name: 'No lid — open-top box',
+    note: 'Box only, heart-loop bow on top',
+    draw(S, p) {
+      const sw = S*0.055;
+      return `
+        <rect x="${S*.18}" y="${S*.36}" width="${S*.64}" height="${S*.54}" rx="${S*.08}" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+        <line x1="${S*.5}" y1="${S*.36}" x2="${S*.5}" y2="${S*.9}" stroke="${p.bg}" stroke-width="${sw}"/>
+        <path d="M${S*.5} ${S*.36} C${S*.5} ${S*.22} ${S*.35} ${S*.14} ${S*.3} ${S*.22} C${S*.26} ${S*.28} ${S*.36} ${S*.34} ${S*.5} ${S*.36}Z" fill="${p.bg}" stroke="${p.bg}" stroke-width="${sw*.4}" stroke-linejoin="round"/>
+        <path d="M${S*.5} ${S*.36} C${S*.5} ${S*.22} ${S*.65} ${S*.14} ${S*.7} ${S*.22} C${S*.74} ${S*.28} ${S*.64} ${S*.34} ${S*.5} ${S*.36}Z" fill="${p.bg}" stroke="${p.bg}" stroke-width="${sw*.4}" stroke-linejoin="round"/>
+      `;
+    }
+  },
+  {
+    name: 'Rounded square (app icon)',
+    note: 'Squircle container, icon centered inside',
+    draw(S, p) {
+      const sw = S*0.05;
+      return `
+        <rect x="${S*.06}" y="${S*.06}" width="${S*.88}" height="${S*.88}" rx="${S*.22}" fill="${p.bg}"/>
+        <rect x="${S*.22}" y="${S*.46}" width="${S*.56}" height="${S*.38}" rx="${S*.06}" fill="none" stroke="white" stroke-width="${sw}"/>
+        <rect x="${S*.18}" y="${S*.38}" width="${S*.64}" height="${S*.11}" rx="${S*.03}" fill="none" stroke="white" stroke-width="${sw}"/>
+        <line x1="${S*.5}" y1="${S*.38}" x2="${S*.5}" y2="${S*.84}" stroke="white" stroke-width="${sw}"/>
+        <path d="M${S*.5} ${S*.38} C${S*.5} ${S*.24} ${S*.31} ${S*.2} ${S*.31} ${S*.32} C${S*.31} ${S*.38} ${S*.5} ${S*.38} ${S*.5} ${S*.38}Z" fill="white"/>
+        <path d="M${S*.5} ${S*.38} C${S*.5} ${S*.24} ${S*.69} ${S*.2} ${S*.69} ${S*.32} C${S*.69} ${S*.38} ${S*.5} ${S*.38} ${S*.5} ${S*.38}Z" fill="white"/>
+      `;
+    }
+  },
+  {
+    name: 'Minimal — tag + bow',
+    note: 'Stripped down, price-tag silhouette with loop',
+    draw(S, p) {
+      const sw = S*0.058;
+      return `
+        <path d="M${S*.2} ${S*.42} L${S*.2} ${S*.82} Q${S*.2} ${S*.88} ${S*.26} ${S*.88} L${S*.74} ${S*.88} Q${S*.8} ${S*.88} ${S*.8} ${S*.82} L${S*.8} ${S*.42} Q${S*.8} ${S*.36} ${S*.74} ${S*.36} L${S*.26} ${S*.36} Q${S*.2} ${S*.36} ${S*.2} ${S*.42}Z" fill="none" stroke="${p.bg}" stroke-width="${sw}" stroke-linejoin="round"/>
+        <line x1="${S*.5}" y1="${S*.36}" x2="${S*.5}" y2="${S*.88}" stroke="${p.bg}" stroke-width="${sw}"/>
+        <line x1="${S*.2}" y1="${S*.53}" x2="${S*.8}" y2="${S*.53}" stroke="${p.bg}" stroke-width="${sw*.8}"/>
+        <path d="M${S*.5} ${S*.36} C${S*.42} ${S*.22} ${S*.28} ${S*.2} ${S*.3} ${S*.3} C${S*.32} ${S*.38} ${S*.5} ${S*.36} ${S*.5} ${S*.36}Z" fill="${p.bg}"/>
+        <path d="M${S*.5} ${S*.36} C${S*.58} ${S*.22} ${S*.72} ${S*.2} ${S*.7} ${S*.3} C${S*.68} ${S*.38} ${S*.5} ${S*.36} ${S*.5} ${S*.36}Z" fill="${p.bg}"/>
+        <circle cx="${S*.5}" cy="${S*.36}" r="${S*.038}" fill="${p.bg}"/>
+      `;
+    }
+  },
+  {
+    name: 'Chunky filled — bold brand',
+    note: 'High contrast, works small, very recognisable',
+    draw(S, p) {
+      const sw = S*0.04;
+      return `
+        <rect x="${S*.14}" y="${S*.38}" width="${S*.72}" height="${S*.52}" rx="${S*.1}" fill="${p.bg}"/>
+        <rect x="${S*.1}" y="${S*.3}" width="${S*.8}" height="${S*.13}" rx="${S*.05}" fill="${p.lid}"/>
+        <line x1="${S*.5}" y1="${S*.3}" x2="${S*.5}" y2="${S*.9}" stroke="white" stroke-width="${S*.07}"/>
+        <line x1="${S*.14}" y1="${S*.435}" x2="${S*.86}" y2="${S*.435}" stroke="white" stroke-width="${S*.045}"/>
+        <path d="M${S*.5} ${S*.3} C${S*.5} ${S*.12} ${S*.25} ${S*.08} ${S*.26} ${S*.23} C${S*.27} ${S*.32} ${S*.5} ${S*.3} ${S*.5} ${S*.3}Z" fill="${p.lid}" stroke="${p.lid}" stroke-width="${sw}"/>
+        <path d="M${S*.5} ${S*.3} C${S*.5} ${S*.12} ${S*.75} ${S*.08} ${S*.74} ${S*.23} C${S*.73} ${S*.32} ${S*.5} ${S*.3} ${S*.5} ${S*.3}Z" fill="${p.lid}" stroke="${p.lid}" stroke-width="${sw}"/>
+        <circle cx="${S*.5}" cy="${S*.3}" r="${S*.05}" fill="white"/>
+      `;
+    }
+  },
+];
+
+let active = 5;
+let palIdx = [0,0,0,0,0,0];
+let bigSize = false;
+
+function toggleSize() { bigSize = !bigSize; render(); }
+function doRefine() {
+  const v = VARIANTS[active];
+  sendPrompt(`I like the "${v.name}" gift box variation — can you refine it into a polished final logo with the wordmark "treatcode"? Try a few layout options (stacked, side by side) and maybe explore a couple of colour palette options.`);
+}
+
+function makeSVG(idx, size) {
+  const v = VARIANTS[idx];
+  const p = PALS[palIdx[idx]];
+  const S = size;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox',`0 0 ${S} ${S}`);
+  svg.setAttribute('width', S); svg.setAttribute('height', S);
+  svg.innerHTML = v.draw(S, p);
+  return svg;
+}
+
+function makeWordmark(idx, size) {
+  const p = PALS[palIdx[idx]];
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox','0 0 130 20');
+  svg.setAttribute('width','130'); svg.setAttribute('height','20');
+  svg.innerHTML = `<text x="65" y="15" text-anchor="middle" font-family="var(--font-sans)" font-size="14" font-weight="500" fill="${p.word}" letter-spacing="-0.2">treatcode</text>`;
+  return svg;
+}
+
+function render() {
+  ['r1','r2'].forEach((id, ri) => {
+    const row = document.getElementById(id);
+    row.innerHTML = '';
+    [0,1,2].forEach(ci => {
+      const idx = ri*3 + ci;
+      const v = VARIANTS[idx];
+      const size = bigSize ? 88 : 64;
+      const card = document.createElement('div');
+      card.className = 'card' + (active===idx?' active':'');
+      card.onclick = () => { active=idx; render(); };
+
+      card.appendChild(makeSVG(idx, size));
+      card.appendChild(makeWordmark(idx, idx));
+
+      const palRow = document.createElement('div');
+      palRow.className = 'pal-row';
+      PALS.forEach((pal,pi) => {
+        const dot = document.createElement('div');
+        dot.className = 'pal-dot' + (palIdx[idx]===pi?' on':'');
+        dot.style.background = PAL_COLORS[pi];
+        dot.onclick = e => { e.stopPropagation(); palIdx[idx]=pi; render(); };
+        palRow.appendChild(dot);
+      });
+      card.appendChild(palRow);
+
+      const nm = document.createElement('div');
+      nm.className = 'name';
+      nm.textContent = v.name;
+      card.appendChild(nm);
+
+      row.appendChild(card);
+    });
+  });
+}
+
+render();
+</script>
