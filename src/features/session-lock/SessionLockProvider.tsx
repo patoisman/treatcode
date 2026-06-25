@@ -37,9 +37,17 @@ export function SessionLockProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    clearLockState();
-    setLockedState(false);
-    await supabase.auth.signOut();
+    // Keep the lock overlay up THROUGH sign-out so the protected page never
+    // flashes underneath. The SIGNED_OUT handler below clears the lock at the
+    // same moment the session goes null, so the overlay unmounts and
+    // ProtectedRoute redirects to /signin in a single render. The finally is a
+    // safety net in case sign-out resolves without emitting SIGNED_OUT.
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      clearLockState();
+      setLockedState(false);
+    }
   }, []);
 
   // Any full sign-out clears the persisted lock so the next login never starts

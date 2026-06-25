@@ -1,11 +1,13 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { FullPageSpinner } from "@/components/common/FullPageSpinner";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AdminRoute } from "@/components/layout/AdminRoute";
 import { SessionLockProvider } from "@/features/session-lock/SessionLockProvider";
+import { supabase } from "@/lib/supabase";
+import { isRecovering } from "@/features/auth/lib/recoveryLatch";
 
 const Index = lazy(() => import("@/pages/Index"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
@@ -24,6 +26,23 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export default function App() {
+  const navigate = useNavigate();
+
+  // Redirect to the reset-password page whenever a PASSWORD_RECOVERY session is
+  // established, regardless of which page the user lands on. This handles the
+  // case where the Supabase redirect URL sends the user to the site root instead
+  // of /reset-password (e.g. due to an allowlist mismatch).
+  useEffect(() => {
+    // Covers the case where the event already fired before this effect ran.
+    if (isRecovering()) navigate("/reset-password", { replace: true });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        navigate("/reset-password", { replace: true });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
   return (
     <ErrorBoundary>
       <SessionLockProvider>

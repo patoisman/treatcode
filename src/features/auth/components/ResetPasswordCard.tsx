@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -12,30 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
 import { useUpdatePassword } from "@/features/auth/hooks/useUpdatePassword";
-
-type PageState = "checking" | "ready" | "invalid" | "done";
+import { useRecoveryGate } from "@/features/auth/hooks/useRecoveryGate";
 
 export function ResetPasswordCard() {
   const updatePassword = useUpdatePassword();
+  const { state: pageState, markDone } = useRecoveryGate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [pageState, setPageState] = useState<PageState>("checking");
-  // Track once we've entered recovery mode so subsequent auth events don't flip state.
-  const isRecovery = useRef(false);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        isRecovery.current = true;
-        setPageState("ready");
-      } else if (!isRecovery.current) {
-        setPageState("invalid");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +33,7 @@ export function ResetPasswordCard() {
     }
     try {
       await updatePassword.mutateAsync(password);
-      setPageState("done");
+      markDone();
     } catch (err) {
       toast.error("Password reset failed", {
         description: err instanceof Error ? err.message : "Your reset link may have expired.",
