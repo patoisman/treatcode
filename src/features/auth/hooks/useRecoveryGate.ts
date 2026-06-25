@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { isRecovering, onRecovery, readRecoveryUrlError } from "../lib/recoveryLatch";
+import { clearRecovery, isRecovering, onRecovery, readRecoveryUrlError } from "../lib/recoveryLatch";
 
 export type RecoveryGateState = "checking" | "ready" | "invalid" | "done";
 
@@ -49,5 +49,11 @@ export function useRecoveryGate() {
     };
   }, [state]);
 
-  return { state, markDone: () => setState("done") };
+  return {
+    state,
+    markDone: () => {
+      clearRecovery(); // recovery is consumed — don't re-show the form on return
+      setState("done");
+    },
+  };
 }

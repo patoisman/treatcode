@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/common/PasswordInput";
 import { useSignIn } from "../hooks/useSignIn";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 
@@ -45,12 +46,9 @@ export function LoginForm() {
             Forgot password?
           </Link>
         </div>
-        <div className="relative">
-          <Input id="login-password" type="password" placeholder="Enter your password"
-            value={password} onChange={(e) => setPassword(e.target.value)}
-            className="pl-10" required disabled={isPending} />
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        </div>
+        <PasswordInput id="login-password" placeholder="Enter your password"
+          value={password} onChange={(e) => setPassword(e.target.value)}
+          required disabled={isPending} />
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending}>

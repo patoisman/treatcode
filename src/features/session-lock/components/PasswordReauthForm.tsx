@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/common/PasswordInput";
 import { useReauthPassword } from "../hooks/useReauthPassword";
 
 interface PasswordReauthFormProps {
@@ -32,20 +32,15 @@ export function PasswordReauthForm({ email, onUnlock }: PasswordReauthFormProps)
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="space-y-2">
         <Label htmlFor="reauth-password">Password</Label>
-        <div className="relative">
-          <Input
-            id="reauth-password"
-            type="password"
-            autoFocus
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="pl-10"
-            required
-            disabled={reauth.isPending}
-          />
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        </div>
+        <PasswordInput
+          id="reauth-password"
+          autoFocus
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={reauth.isPending}
+        />
       </div>
       <Button type="submit" className="w-full" disabled={reauth.isPending}>
         {reauth.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

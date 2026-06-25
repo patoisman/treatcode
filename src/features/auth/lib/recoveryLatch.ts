@@ -30,6 +30,15 @@ export function isRecovering(): boolean {
   return recovering;
 }
 
+/**
+ * Marks the recovery as consumed (call after the password has been changed) so
+ * the app no longer treats this load as a pending recovery — otherwise a return
+ * to `/reset-password` would re-show the form instead of the success screen.
+ */
+export function clearRecovery(): void {
+  recovering = false;
+}
+
 /** Subscribe to the moment recovery is detected. Returns an unsubscribe fn. */
 export function onRecovery(listener: () => void): () => void {
   listeners.add(listener);

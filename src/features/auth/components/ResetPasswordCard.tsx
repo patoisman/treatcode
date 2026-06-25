@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -12,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PasswordInput } from "@/components/common/PasswordInput";
 import { useUpdatePassword } from "@/features/auth/hooks/useUpdatePassword";
 import { useRecoveryGate } from "@/features/auth/hooks/useRecoveryGate";
 
@@ -94,21 +94,15 @@ export function ResetPasswordCard() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password">New password</Label>
-                <div className="relative">
-                  <Input id="password" type="password" placeholder="At least 8 characters"
-                    value={password} onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10" required minLength={8} disabled={updatePassword.isPending} />
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
+                <PasswordInput id="password" placeholder="At least 8 characters"
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  required minLength={8} disabled={updatePassword.isPending} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm new password</Label>
-                <div className="relative">
-                  <Input id="confirmPassword" type="password" placeholder="Repeat your new password"
-                    value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10" required disabled={updatePassword.isPending} />
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
+                <PasswordInput id="confirmPassword" placeholder="Repeat your new password"
+                  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                  required disabled={updatePassword.isPending} />
               </div>
               <Button type="submit" className="w-full" disabled={updatePassword.isPending}>
                 {updatePassword.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

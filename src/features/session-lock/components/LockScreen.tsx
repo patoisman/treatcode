@@ -1,4 +1,5 @@
-import { Lock } from "lucide-react";
+import { useState } from "react";
+import { Loader2, Lock } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { getAuthProviders } from "../lib/providers";
@@ -16,6 +17,14 @@ export function LockScreen({ session, onUnlock, onLogout }: LockScreenProps) {
   const { hasPassword, hasGoogle } = getAuthProviders(session);
   // Every account has at least an email login; default to it if detection fails.
   const showPassword = hasPassword || !hasGoogle;
+  const [signingOut, setSigningOut] = useState(false);
+
+  // The overlay stays up through sign-out (see SessionLockProvider.logout) and
+  // unmounts on SIGNED_OUT, so this pending state just acknowledges the click.
+  const handleLogout = () => {
+    setSigningOut(true);
+    onLogout();
+  };
 
   return (
     <div
@@ -62,8 +71,14 @@ export function LockScreen({ session, onUnlock, onLogout }: LockScreenProps) {
           />
         )}
 
-        <Button variant="ghost" className="w-full" onClick={onLogout}>
-          Not you? Sign out
+        <Button
+          variant="ghost"
+          className="w-full"
+          onClick={handleLogout}
+          disabled={signingOut}
+        >
+          {signingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {signingOut ? "Signing out…" : "Not you? Sign out"}
         </Button>
       </div>
     </div>
