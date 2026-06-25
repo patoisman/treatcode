@@ -27,9 +27,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <SessionLockProvider>
-        <Suspense fallback={<FullPageSpinner />}>
-          <Routes>
-          {/* Public */}
+        <Routes>
+          {/* Public — load silently, no Suspense fallback */}
           <Route path="/" element={<Index />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
@@ -43,38 +42,73 @@ export default function App() {
           {/* Onboarding — accessible to authenticated users at any onboarding step */}
           <Route path="/onboarding" element={<Onboarding />} />
           {/* GoCardless exit_uri — user cancelled the GC flow */}
-          <Route path="/wallet/setup" element={<Navigate to="/onboarding" replace />} />
+          <Route
+            path="/wallet/setup"
+            element={<Navigate to="/onboarding" replace />}
+          />
           {/* GoCardless redirect_uri — user completed the GC flow */}
-          <Route path="/wallet/setup/callback" element={<WalletSetupCallback />} />
+          <Route
+            path="/wallet/setup/callback"
+            element={<WalletSetupCallback />}
+          />
 
           {/* Protected — requires session + setup_complete */}
           <Route
             path="/dashboard"
-            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+            element={
+              <Suspense fallback={<FullPageSpinner />}>
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              </Suspense>
+            }
           />
           <Route
             path="/dashboard/deposits"
-            element={<ProtectedRoute><Deposits /></ProtectedRoute>}
+            element={
+              <Suspense fallback={<FullPageSpinner />}>
+                <ProtectedRoute>
+                  <Deposits />
+                </ProtectedRoute>
+              </Suspense>
+            }
           />
           <Route
             path="/dashboard/redemptions"
-            element={<ProtectedRoute><Redemptions /></ProtectedRoute>}
+            element={
+              <Suspense fallback={<FullPageSpinner />}>
+                <ProtectedRoute>
+                  <Redemptions />
+                </ProtectedRoute>
+              </Suspense>
+            }
           />
           <Route
             path="/dashboard/direct-debit"
-            element={<ProtectedRoute><DirectDebit /></ProtectedRoute>}
+            element={
+              <Suspense fallback={<FullPageSpinner />}>
+                <ProtectedRoute>
+                  <DirectDebit />
+                </ProtectedRoute>
+              </Suspense>
+            }
           />
 
           {/* Protected — admin only */}
           <Route
             path="/admin"
-            element={<AdminRoute><Admin /></AdminRoute>}
+            element={
+              <Suspense fallback={<FullPageSpinner />}>
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              </Suspense>
+            }
           />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        </Routes>
         <Toaster richColors />
       </SessionLockProvider>
     </ErrorBoundary>
