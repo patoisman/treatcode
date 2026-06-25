@@ -1,8 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { emailHtml, s, ctaButton } from "../_shared/emailTemplate.ts";
 
 const GC_BASE_URL =
   Deno.env.get("GOCARDLESS_BASE_URL") ?? "https://api.gocardless.com";
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://treat-code.com";
 
 function getAdminClient() {
   const url = Deno.env.get("SUPABASE_URL")!;
@@ -88,7 +90,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: "hello@contact.treat-code.com", to, subject, html }),
+      body: JSON.stringify({ from: Deno.env.get("FROM_EMAIL") ?? "Treatcode <hello@mail.treat-code.com>", to, subject, html }),
     });
     if (!res.ok) console.error("Resend error:", await res.text());
   } catch (err) {
@@ -389,11 +391,18 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
       // (ledger 23505) we skip it so a redelivered confirmation can't send a second
       // "deposit landed" email.
       if (!ledgerErr) {
-        const { data: profile } = await admin.from("profiles").select("email").eq("id", payment.user_id).single();
+        const { data: profile } = await admin.from("profiles").select("email, full_name").eq("id", payment.user_id).single();
         if (profile) {
-          const subj = payment.subscription_id ? "Your monthly deposit is in" : "Your first deposit just landed 🎉";
-          const body = `<p>Hi,</p><p>${payment.subscription_id ? "Your monthly" : "Your first"} Treatcode deposit of <strong>${poundsDisplay(payment.amount_pence)}</strong> has landed. Your wallet balance has been updated.</p><p>— The Treatcode team</p>`;
-          await sendEmail(profile.email, subj, body);
+          const isMonthly = !!payment.subscription_id;
+          const name = profile.full_name || "there";
+          const subj = isMonthly ? "Your monthly deposit is in" : "Your first deposit just landed 🎉";
+          const html = emailHtml(`
+<p style="${s.p}">Hi ${name},</p>
+<p style="${s.p}">${isMonthly ? "Your monthly" : "Your first"} Treatcode deposit of <strong style="color:#1e293b;">${poundsDisplay(payment.amount_pence)}</strong> has landed. Your wallet balance has been updated.</p>
+<p style="${s.pLast}">Keep saving — your next treat is just around the corner.</p>
+${ctaButton("View your wallet &rarr;", `${SITE_URL}/dashboard`)}
+`, SITE_URL);
+          await sendEmail(profile.email, subj, html);
         }
       }
       return;
@@ -414,8 +423,16 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
       const { data: payment } = await admin.from("gc_payments")
         .select("user_id, amount_pence").eq("id", paymentId).single();
       if (payment) {
-        const { data: p } = await admin.from("profiles").select("email").eq("id", payment.user_id).single();
-        if (p) await sendEmail(p.email, "We couldn't collect your deposit", `<p>Hi,</p><p>We were unable to collect your Treatcode deposit of <strong>${poundsDisplay(payment.amount_pence)}</strong>. Please check your bank details or contact us if you have questions.</p><p>— The Treatcode team</p>`);
+        const { data: p } = await admin.from("profiles").select("email, full_name").eq("id", payment.user_id).single();
+        if (p) {
+          const name = p.full_name || "there";
+          const html = emailHtml(`
+<p style="${s.p}">Hi ${name},</p>
+<p style="${s.p}">We were unable to collect your Treatcode deposit of <strong style="color:#1e293b;">${poundsDisplay(payment.amount_pence)}</strong>. Please check that your account has sufficient funds — we'll try again automatically.</p>
+<p style="${s.pLast}">If the problem persists, please reply to this email and we'll help you get sorted.</p>
+`, SITE_URL);
+          await sendEmail(p.email, "We couldn't collect your deposit", html);
+        }
       }
       return;
     }
@@ -447,10 +464,15 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
       // balance is a guaranteed support escalation. Gated on a new insert so a
       // redelivered chargeback doesn't alarm the user twice.
       if (!ledgerErr) {
-        const { data: p } = await admin.from("profiles").select("email").eq("id", payment.user_id).single();
+        const { data: p } = await admin.from("profiles").select("email, full_name").eq("id", payment.user_id).single();
         if (p) {
-          await sendEmail(p.email, "Important: your balance has been adjusted",
-            `<p>Hi,</p><p>Your bank has reversed a payment of <strong>${poundsDisplay(payment.amount_pence)}</strong>, which has been deducted from your Treatcode balance. If you believe this is an error, please contact your bank. We're here to help if you have any questions.</p><p>— The Treatcode team</p>`);
+          const name = p.full_name || "there";
+          const html = emailHtml(`
+<p style="${s.p}">Hi ${name},</p>
+<p style="${s.p}">Your bank has reversed a payment of <strong style="color:#1e293b;">${poundsDisplay(payment.amount_pence)}</strong>, which has been deducted from your Treatcode balance.</p>
+<p style="${s.pLast}">If you believe this is an error, please contact your bank directly. We're always here to help — just reply to this email.</p>
+`, SITE_URL);
+          await sendEmail(p.email, "Important: your Treatcode balance has been adjusted", html);
         }
       }
       return;
@@ -612,11 +634,17 @@ async function handleEvent(admin: SupabaseClient, event: any): Promise<void> {
 
       const { data: mandate } = await admin.from("gc_mandates").select("user_id").eq("id", mandateId).single();
       if (mandate) {
-        const { data: p } = await admin.from("profiles").select("email").eq("id", mandate.user_id).single();
+        const { data: p } = await admin.from("profiles").select("email, full_name").eq("id", mandate.user_id).single();
         if (p) {
           const reason = cause || action;
-          await sendEmail(p.email, "Action needed: renew your Direct Debit",
-            `<p>Hi,</p><p>Your Direct Debit mandate has been ${reason}. To continue saving with Treatcode, please renew your Direct Debit by visiting your wallet settings.</p><p>— The Treatcode team</p>`);
+          const name = p.full_name || "there";
+          const html = emailHtml(`
+<p style="${s.p}">Hi ${name},</p>
+<p style="${s.p}">Your Direct Debit mandate has been ${reason}. To continue saving with Treatcode, you'll need to set it up again — it only takes a minute.</p>
+<p style="${s.pLast}">If you have any questions, just reply to this email.</p>
+${ctaButton("Go to dashboard &rarr;", `${SITE_URL}/dashboard`)}
+`, SITE_URL);
+          await sendEmail(p.email, "Action needed: renew your Direct Debit", html);
         }
       }
       return;

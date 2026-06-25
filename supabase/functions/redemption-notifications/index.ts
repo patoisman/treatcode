@@ -1,10 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { emailHtml, s, ctaButton } from "../_shared/emailTemplate.ts";
 
-// This function is now also invoked from the browser (client-side, best-effort)
-// in addition to server-to-server calls, so every response must carry CORS
-// headers — otherwise the preflight has no Access-Control-Allow-Origin and the
-// browser blocks the actual POST (only the OPTIONS ever reaches the function).
+// This function is invoked from the browser (client-side, best-effort) as well as
+// server-to-server via pg_net, so every response must carry CORS headers.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -24,10 +23,11 @@ function getAdminClient() {
 async function sendEmail(to: string, subject: string, html: string) {
   const key = Deno.env.get("RESEND_API_KEY");
   if (!key) return;
+  const from = Deno.env.get("FROM_EMAIL") ?? "Treatcode <hello@mail.treat-code.com>";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: "hello@contact.treat-code.com", to, subject, html }),
+    body: JSON.stringify({ from, to, subject, html }),
   });
   if (!res.ok) console.error("Resend error:", await res.text());
 }
@@ -49,6 +49,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const admin = getAdminClient();
+    const siteUrl = Deno.env.get("SITE_URL") ?? "https://treat-code.com";
 
     const { data: redemption } = await admin
       .from("redemption_requests")
@@ -65,25 +66,23 @@ Deno.serve(async (req: Request) => {
 
     const brand = brandRes.data;
     const userProfile = profileRes.data;
-    const siteUrl = Deno.env.get("SITE_URL") ?? "https://treat-code.com";
     const amountDisplay = `£${(redemption.amount_pence / 100).toFixed(2)}`;
 
     if (event === "new_request") {
       const adminEmail = Deno.env.get("ADMIN_EMAIL");
       if (!adminEmail || !brand) return new Response("ok", { status: 200, headers: corsHeaders });
 
-      await sendEmail(
-        adminEmail,
-        `New voucher request — ${brand.name} ${amountDisplay}`,
-        `<p>A new voucher redemption request is waiting to be fulfilled.</p>
-<table style="border-collapse:collapse;margin:16px 0;">
-  <tr><td style="padding:4px 16px 4px 0;color:#666;">Brand</td><td><strong>${brand.name}</strong></td></tr>
-  <tr><td style="padding:4px 16px 4px 0;color:#666;">Amount</td><td><strong>${amountDisplay}</strong></td></tr>
-  <tr><td style="padding:4px 16px 4px 0;color:#666;">User</td><td>${userProfile?.email ?? redemption.user_id}</td></tr>
+      const html = emailHtml(`
+<p style="${s.p}">A new voucher redemption request is waiting to be fulfilled.</p>
+<table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%" style="margin:0 0 4px;border-top:1px solid #e2e8f0;">
+  <tr><td style="${s.label}">Brand</td><td style="${s.value}">${brand.name}</td></tr>
+  <tr style="border-top:1px solid #f0f4f8;"><td style="${s.label}">Amount</td><td style="${s.value}">${amountDisplay}</td></tr>
+  <tr style="border-top:1px solid #f0f4f8;"><td style="${s.label}">Requested by</td><td style="${s.value}">${userProfile?.full_name ?? userProfile?.email ?? redemption.user_id}</td></tr>
 </table>
-<p><a href="${siteUrl}/admin/redemptions" style="display:inline-block;padding:10px 20px;background:#18181b;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Open queue &rarr;</a></p>
-<p style="color:#999;font-size:12px;">— Treatcode</p>`
-      );
+${ctaButton("Open queue &rarr;", `${siteUrl}/admin`)}
+`, siteUrl);
+
+      await sendEmail(adminEmail, `New voucher request — ${brand.name} ${amountDisplay}`, html);
     }
 
     if (event === "request_failed") {
@@ -92,15 +91,19 @@ Deno.serve(async (req: Request) => {
       const reason = redemption.status === "expired"
         ? "expired before it could be fulfilled"
         : "could not be fulfilled";
+      const name = userProfile.full_name || "there";
+
+      const html = emailHtml(`
+<p style="${s.p}">Hi ${name},</p>
+<p style="${s.p}">Unfortunately your <strong style="color:#1e293b;">${brand.name}</strong> voucher request for <strong style="color:#1e293b;">${amountDisplay}</strong> ${reason}. Your balance has been fully refunded and is available in your wallet immediately.</p>
+<p style="${s.pLast}">You can place a new request at any time from the Brands page.</p>
+${ctaButton("Browse brands &rarr;", `${siteUrl}/dashboard/redemptions`)}
+`, siteUrl);
 
       await sendEmail(
         userProfile.email,
-        `Your voucher request failed — balance refunded`,
-        `<p>Hi ${userProfile.full_name || "there"},</p>
-<p>Unfortunately your <strong>${brand.name}</strong> voucher request for <strong>${amountDisplay}</strong> ${reason}. Your balance has been fully refunded and is available in your wallet immediately.</p>
-<p>You can make a new request at any time from the <a href="${siteUrl}/retailers">Brands page</a>.</p>
-<p>If you have any questions, just reply to this email.</p>
-<p>— The Treatcode team</p>`
+        `Your ${brand.name} request has been refunded`,
+        html,
       );
     }
 

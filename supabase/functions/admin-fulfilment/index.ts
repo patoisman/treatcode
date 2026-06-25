@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { emailHtml, s } from "../_shared/emailTemplate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,10 +39,11 @@ function getUserClient(authHeader: string) {
 async function sendEmail(to: string, subject: string, html: string) {
   const key = Deno.env.get("RESEND_API_KEY");
   if (!key) return;
+  const from = Deno.env.get("FROM_EMAIL") ?? "Treatcode <hello@mail.treat-code.com>";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: "hello@contact.treat-code.com", to, subject, html }),
+    body: JSON.stringify({ from, to, subject, html }),
   });
   if (!res.ok) console.error("Resend error:", await res.text());
 }
@@ -142,26 +144,34 @@ Deno.serve(async (req: Request) => {
 
     const userProfile = profileRes.data;
     const brand = brandRes.data;
+    const siteUrl = Deno.env.get("SITE_URL") ?? "https://treat-code.com";
 
     if (userProfile && brand) {
       const amountDisplay = `£${(redemption.amount_pence / 100).toFixed(2)}`;
-      const codeLine = `<p><strong>Voucher code:</strong> <code style="font-family:monospace;background:#f5f5f5;padding:4px 8px;border-radius:4px;">${voucherCode.trim()}</code></p>`;
-      const pinLine = voucherPin?.trim()
-        ? `<p><strong>PIN:</strong> ${voucherPin.trim()}</p>`
-        : "";
-      const instructionsLine = instructions?.trim()
-        ? `<p><strong>How to use:</strong> ${instructions.trim()}</p>`
+      const name = userProfile.full_name || "there";
+
+      const pinBlock = voucherPin?.trim()
+        ? `<p style="${s.p}"><strong style="color:#1e293b;">PIN:</strong> <span style="${s.code}">${voucherPin.trim()}</span></p>`
         : "";
 
-      await sendEmail(
-        userProfile.email,
-        `Your ${brand.name} voucher is ready`,
-        `<p>Hi ${userProfile.full_name || "there"},</p>
-<p>Great news! Your <strong>${brand.name}</strong> voucher worth <strong>${amountDisplay}</strong> is ready to use.</p>
-${codeLine}${pinLine}${instructionsLine}
-<p>Enjoy your treat!</p>
-<p>— The Treatcode team</p>`
-      );
+      const instructionsBlock = instructions?.trim()
+        ? `<p style="${s.p}"><strong style="color:#1e293b;">How to use:</strong> ${instructions.trim()}</p>`
+        : "";
+
+      const html = emailHtml(`
+<p style="${s.p}">Hi ${name},</p>
+<p style="${s.p}">Great news — your <strong style="color:#1e293b;">${brand.name}</strong> voucher is ready to use.</p>
+<table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%" style="margin:0 0 24px;border-top:1px solid #e2e8f0;">
+  <tr><td style="${s.label}">Brand</td><td style="${s.value}">${brand.name}</td></tr>
+  <tr style="border-top:1px solid #f0f4f8;"><td style="${s.label}">Value</td><td style="${s.value}">${amountDisplay}</td></tr>
+</table>
+<p style="margin:0 0 8px;font-size:13px;color:#64748b;font-family:Consolas,'Courier New',monospace;text-transform:uppercase;letter-spacing:0.5px;">Voucher code</p>
+<p style="margin:0 0 24px;"><span style="${s.code}">${voucherCode.trim()}</span></p>
+${pinBlock}${instructionsBlock}
+<p style="${s.pLast}">Enjoy your treat!</p>
+`, siteUrl);
+
+      await sendEmail(userProfile.email, `Your ${brand.name} voucher is ready`, html);
     }
 
     return json({ success: true });

@@ -42,14 +42,15 @@ export function SessionLockProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
-  // Any full sign-out (here, another tab, or a token expiry) clears the
-  // persisted lock state so the next login never starts locked. A plain page
-  // refresh fires no SIGNED_OUT, so a locked session stays locked across reload.
+  // Any full sign-out clears the persisted lock so the next login never starts
+  // locked. PASSWORD_RECOVERY also clears it — the user is resetting their
+  // password (possibly because they forgot it), so blocking them with the lock
+  // screen is a catch-22.
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") {
+      if (event === "SIGNED_OUT" || event === "PASSWORD_RECOVERY") {
         clearLockState();
         setLockedState(false);
       }
