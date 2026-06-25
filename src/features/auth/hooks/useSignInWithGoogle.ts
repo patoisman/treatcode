@@ -6,7 +6,7 @@ export function useSignInWithGoogle() {
     mutationFn: async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth` },
+        options: { redirectTo: `${window.location.origin}/signin` },
       });
       if (error) throw error;
     },

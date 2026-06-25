@@ -5,20 +5,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GoogleIcon } from "@/components/icons/GoogleIcon";
 import { useSignIn } from "../hooks/useSignIn";
-import { useSignInWithGoogle } from "../hooks/useSignInWithGoogle";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
-interface LoginFormProps {
-  onSwitchToRegister: () => void;
-}
-
-export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const signIn = useSignIn();
-  const signInWithGoogle = useSignInWithGoogle();
-  const isPending = signIn.isPending || signInWithGoogle.isPending;
+  const isPending = signIn.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,16 +21,6 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
       toast.success("Welcome back!", { description: "You've been signed in." });
     } catch (err) {
       toast.error("Sign in failed", {
-        description: err instanceof Error ? err.message : "An unexpected error occurred.",
-      });
-    }
-  };
-
-  const handleGoogle = async () => {
-    try {
-      await signInWithGoogle.mutateAsync();
-    } catch (err) {
-      toast.error("Google sign-in failed", {
         description: err instanceof Error ? err.message : "An unexpected error occurred.",
       });
     }
@@ -83,17 +67,13 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
         </div>
       </div>
 
-      <Button type="button" variant="outline" className="w-full" onClick={handleGoogle} disabled={isPending}>
-        {signInWithGoogle.isPending
-          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          : <GoogleIcon className="mr-2 h-5 w-5" />}
-        Continue with Google
-      </Button>
+      <GoogleSignInButton mode="signin" />
 
-      <div className="text-center pt-2">
-        <button type="button" onClick={onSwitchToRegister} className="text-sm text-primary hover:underline">
-          Don't have an account? Sign up
-        </button>
+      <div className="text-center pt-2 text-sm text-muted-foreground">
+        Don't have an account?{" "}
+        <Link to="/signup" className="text-primary hover:underline">
+          Sign up
+        </Link>
       </div>
     </form>
   );

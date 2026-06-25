@@ -64,7 +64,7 @@ export default function ResetPassword() {
                   Your password has been changed successfully.
                 </p>
                 <Button asChild className="w-full mt-4">
-                  <Link to="/auth">Sign in with new password</Link>
+                  <Link to="/signin">Sign in with new password</Link>
                 </Button>
               </div>
             </CardContent>

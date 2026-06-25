@@ -5,11 +5,15 @@ import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { FullPageSpinner } from "@/components/common/FullPageSpinner";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AdminRoute } from "@/components/layout/AdminRoute";
+import { SessionLockProvider } from "@/features/session-lock/SessionLockProvider";
 
 const Index = lazy(() => import("@/pages/Index"));
-const Auth = lazy(() => import("@/pages/Auth"));
+const SignIn = lazy(() => import("@/pages/SignIn"));
+const SignUp = lazy(() => import("@/pages/SignUp"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Terms = lazy(() => import("@/pages/Terms"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const WalletSetupCallback = lazy(() => import("@/pages/WalletSetupCallback"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -22,13 +26,19 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 export default function App() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<FullPageSpinner />}>
-        <Routes>
+      <SessionLockProvider>
+        <Suspense fallback={<FullPageSpinner />}>
+          <Routes>
           {/* Public */}
           <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          {/* Legacy combined route — keep links/bookmarks working */}
+          <Route path="/auth" element={<Navigate to="/signin" replace />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
           {/* Onboarding — accessible to authenticated users at any onboarding step */}
           <Route path="/onboarding" element={<Onboarding />} />
@@ -63,9 +73,10 @@ export default function App() {
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-      <Toaster richColors />
+          </Routes>
+        </Suspense>
+        <Toaster richColors />
+      </SessionLockProvider>
     </ErrorBoundary>
   );
 }

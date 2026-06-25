@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { BrandMark } from "@/components/common/BrandMark";
+import { LEGAL_COMPANY } from "@/features/legal/constants";
 
 export function Footer() {
   return (
@@ -14,23 +16,26 @@ export function Footer() {
           {/* Links + contact */}
           <div className="flex flex-col items-center gap-3 text-primary-foreground/90 text-sm">
             <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">
+              <Link to="/privacy" className="hover:text-white transition-colors">
                 Privacy
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </Link>
+              <Link to="/terms" className="hover:text-white transition-colors">
                 Terms
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </Link>
+              <a
+                href={`mailto:${LEGAL_COMPANY.email}`}
+                className="hover:text-white transition-colors"
+              >
                 Support
               </a>
             </div>
             <p className="text-xs opacity-90 text-center">
               Need help? Contact us at{" "}
               <a
-                href="mailto:treatcode@treatcode.com"
+                href={`mailto:${LEGAL_COMPANY.email}`}
                 className="underline underline-offset-2 hover:text-white transition-colors"
               >
-                treatcode@treatcode.com
+                {LEGAL_COMPANY.email}
               </a>
             </p>
           </div>

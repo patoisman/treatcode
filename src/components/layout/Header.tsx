@@ -79,8 +79,8 @@ export function Header() {
             </>
           ) : (
             <>
-              <Button variant="ghost" asChild><Link to="/auth">Sign In</Link></Button>
-              <Button asChild><Link to="/auth">Get Started</Link></Button>
+              <Button variant="ghost" asChild><Link to="/signin">Sign In</Link></Button>
+              <Button asChild><Link to="/signup">Get Started</Link></Button>
             </>
           )}
         </nav>
@@ -116,10 +116,10 @@ export function Header() {
                   </>
                 ) : (
                   <>
-                    <Button variant="ghost" className="justify-start" onClick={() => handleNavigate("/auth")}>
+                    <Button variant="ghost" className="justify-start" onClick={() => handleNavigate("/signin")}>
                       <LogIn className="mr-2 h-4 w-4" />Sign In
                     </Button>
-                    <Button className="w-full" onClick={() => handleNavigate("/auth")}>Get Started</Button>
+                    <Button className="w-full" onClick={() => handleNavigate("/signup")}>Get Started</Button>
                   </>
                 )}
               </div>

@@ -17,7 +17,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   if (!session) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/signin" replace />;
   }
 
   if (!profile?.is_admin) {

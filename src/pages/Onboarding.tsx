@@ -29,7 +29,7 @@ export default function Onboarding() {
   useEffect(() => {
     if (sessionLoading) return;
     if (!session) {
-      navigate("/auth", { replace: true });
+      navigate("/signin", { replace: true });
       return;
     }
     if (profile?.onboarding_status === "setup_complete") {

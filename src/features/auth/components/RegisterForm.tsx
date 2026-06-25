@@ -1,24 +1,24 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Loader2, Lock, Mail, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GoogleIcon } from "@/components/icons/GoogleIcon";
 import { useSignUp } from "../hooks/useSignUp";
-import { useSignInWithGoogle } from "../hooks/useSignInWithGoogle";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 interface RegisterFormProps {
-  onSwitchToLogin: () => void;
+  /** Called when sign up succeeds but the email still needs confirming. */
+  onSignedUp: (email: string) => void;
 }
 
-export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
+export function RegisterForm({ onSignedUp }: RegisterFormProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const signUp = useSignUp();
-  const signInWithGoogle = useSignInWithGoogle();
-  const isPending = signUp.isPending || signInWithGoogle.isPending;
+  const isPending = signUp.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,22 +27,15 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       return;
     }
     try {
-      await signUp.mutateAsync({ email, password, fullName: fullName.trim() });
-      toast.success("Account created!", {
-        description: "Please check your email to verify your account.",
-      });
+      const result = await signUp.mutateAsync({ email, password, fullName: fullName.trim() });
+      // With email confirmation on, no session is returned — surface the
+      // "check your email" notice. If a session exists (confirmation off),
+      // the SignUp page redirects to the dashboard automatically.
+      if (!result.session) {
+        onSignedUp(email);
+      }
     } catch (err) {
       toast.error("Sign up failed", {
-        description: err instanceof Error ? err.message : "An unexpected error occurred.",
-      });
-    }
-  };
-
-  const handleGoogle = async () => {
-    try {
-      await signInWithGoogle.mutateAsync();
-    } catch (err) {
-      toast.error("Google sign-in failed", {
         description: err instanceof Error ? err.message : "An unexpected error occurred.",
       });
     }
@@ -94,17 +87,13 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         </div>
       </div>
 
-      <Button type="button" variant="outline" className="w-full" onClick={handleGoogle} disabled={isPending}>
-        {signInWithGoogle.isPending
-          ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          : <GoogleIcon className="mr-2 h-5 w-5" />}
-        Continue with Google
-      </Button>
+      <GoogleSignInButton mode="signup" />
 
-      <div className="text-center pt-2">
-        <button type="button" onClick={onSwitchToLogin} className="text-sm text-primary hover:underline">
-          Already have an account? Sign in
-        </button>
+      <div className="text-center pt-2 text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link to="/signin" className="text-primary hover:underline">
+          Sign in
+        </Link>
       </div>
     </form>
   );

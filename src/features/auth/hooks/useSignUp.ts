@@ -10,12 +10,18 @@ interface SignUpInput {
 export function useSignUp() {
   return useMutation({
     mutationFn: async ({ email, password, fullName }: SignUpInput) => {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName },
+          // Where the confirmation link sends the user once they verify. Lands
+          // on /signin, which forwards an authenticated session to /dashboard.
+          emailRedirectTo: `${window.location.origin}/signin`,
+        },
       });
       if (error) throw error;
+      return data;
     },
   });
 }

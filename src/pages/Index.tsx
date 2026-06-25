@@ -62,7 +62,7 @@ export default function Index() {
           {!isAuthenticated && (
             <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="text-lg px-8 py-6" asChild>
-                <Link to="/auth">
+                <Link to="/signup">
                   Start Cashing In
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -261,7 +261,7 @@ export default function Index() {
 
           {!isAuthenticated && (
             <Button size="lg" className="px-8 py-6 text-lg font-semibold h-auto" asChild>
-              <Link to="/auth">Start Cashing In</Link>
+              <Link to="/signup">Start Cashing In</Link>
             </Button>
           )}
         </div>
