@@ -27,17 +27,29 @@ export default function Dashboard() {
               <CardDescription>Manage your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline"
-                onClick={() => navigate("/dashboard/direct-debit")}>
-                <Wallet className="mr-2 h-4 w-4" />Setup Direct Debit
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => navigate("/dashboard/direct-debit")}
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Manage Direct Debit
               </Button>
-              <Button className="w-full justify-start" variant="outline"
-                onClick={() => navigate("/dashboard/deposits")}>
-                <History className="mr-2 h-4 w-4" />Deposit History
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => navigate("/dashboard/deposits")}
+              >
+                <History className="mr-2 h-4 w-4" />
+                Deposit History
               </Button>
-              <Button className="w-full justify-start" variant="outline"
-                onClick={() => navigate("/dashboard/redemptions")}>
-                <Gift className="mr-2 h-4 w-4" />Redeem Vouchers
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => navigate("/dashboard/redemptions")}
+              >
+                <Gift className="mr-2 h-4 w-4" />
+                Redeem Vouchers
               </Button>
             </CardContent>
           </Card>

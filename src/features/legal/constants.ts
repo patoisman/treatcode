@@ -4,7 +4,7 @@ export const LEGAL_COMPANY = {
   brand: "Treatcode",
   companyNumber: "16429228",
   jurisdiction: "England and Wales",
-  email: "treatcode@treatcode.com",
+  email: "treatcode@treat-code.com",
 } as const;
 
 // Bump this whenever the privacy policy or terms are materially updated.

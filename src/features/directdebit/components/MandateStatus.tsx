@@ -1,5 +1,4 @@
 import { ShieldCheck } from "lucide-react";
-import { formatShortDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -61,14 +60,6 @@ export function MandateStatus({ mandate }: MandateStatusProps) {
           <span className="text-sm text-muted-foreground">Scheme</span>
           <span className="text-sm font-medium uppercase">{mandate.scheme}</span>
         </div>
-        {mandate.next_possible_charge_date && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Next possible charge</span>
-            <span className="text-sm font-medium">
-              {formatShortDate(mandate.next_possible_charge_date)}
-            </span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

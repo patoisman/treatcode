@@ -1,5 +1,5 @@
 import { CalendarClock } from "lucide-react";
-import { formatPence, formatShortDate, formatDayOfMonth } from "@/lib/format";
+import { formatPence, formatShortDate } from "@/lib/format";
 import {
   Card,
   CardContent,
@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useSubscription } from "../hooks/useSubscription";
+import { nextCollectionDate } from "../utils";
 
 // Subscriptions that are no longer collecting shouldn't be shown as live detail.
 const SHOWN_STATUSES = new Set(["active", "paused"]);
@@ -18,6 +19,8 @@ export function SubscriptionDetail() {
   if (!sub || !SHOWN_STATUSES.has(sub.status)) return null;
 
   const isPaused = sub.status === "paused";
+  // Paused subscriptions have no scheduled collection — only show a date when active.
+  const nextCharge = isPaused ? null : nextCollectionDate(sub);
 
   return (
     <Card className="shadow-sm border-0">
@@ -39,18 +42,10 @@ export function SubscriptionDetail() {
             {formatPence(sub.amount_pence)}
           </span>
         </div>
-        {sub.day_of_month != null && (
+        {nextCharge && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Collection day</span>
-            <span className="text-sm font-medium">
-              {formatDayOfMonth(sub.day_of_month)} of each month
-            </span>
-          </div>
-        )}
-        {sub.start_date && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">First collection</span>
-            <span className="text-sm font-medium">{formatShortDate(sub.start_date)}</span>
+            <span className="text-sm text-muted-foreground">Next deposit</span>
+            <span className="text-sm font-medium">{formatShortDate(nextCharge)}</span>
           </div>
         )}
       </CardContent>

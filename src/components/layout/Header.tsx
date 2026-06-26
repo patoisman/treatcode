@@ -23,7 +23,8 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isAuthenticated = !!session;
-  const displayName = profile?.full_name || profile?.email;
+  // Greet with the first name only — friendlier and less cluttered than full name.
+  const displayName = profile?.full_name?.trim().split(/\s+/)[0] || profile?.email;
 
   const handleSignOut = async () => {
     try {
@@ -69,9 +70,6 @@ export function Header() {
                   <span>Admin</span>
                 </Button>
               )}
-              <Button variant="default" size="sm" onClick={() => handleNavigate("/dashboard")}>
-                Dashboard
-              </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut} disabled={signOut.isPending}>
                 <LogOut className="h-4 w-4" />
                 <span>Sign Out</span>

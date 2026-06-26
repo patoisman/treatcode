@@ -1,17 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <defs>
-    <linearGradient id="tc" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#2b3f95" />
-      <stop offset="100%" stop-color="#6b2fd6" />
-    </linearGradient>
-  </defs>
-  <rect width="100" height="100" rx="22" fill="url(#tc)" />
-  <g transform="translate(20 20) scale(0.6)" fill="none" stroke="#ffffff" stroke-width="6"
-     stroke-linecap="round" stroke-linejoin="round">
-    <rect x="15" y="38" width="70" height="52" rx="8" />
-    <rect x="10" y="30" width="80" height="12" rx="4" />
-    <line x1="50" y1="30" x2="50" y2="90" />
-    <path d="M50 30 C50 14 28 10 28 24 C28 30 50 30 50 30Z" />
-    <path d="M50 30 C50 14 72 10 72 24 C72 30 50 30 50 30Z" />
-  </g>
+  <rect x="15" y="38" width="70" height="52" rx="8" fill="none" stroke="#7F77DD" stroke-width="5.5" stroke-linejoin="round"/>
+  <rect x="10" y="30" width="80" height="12" rx="4" fill="none" stroke="#7F77DD" stroke-width="5.5"/>
+  <line x1="50" y1="30" x2="50" y2="90" stroke="#7F77DD" stroke-width="5.5"/>
+  <path d="M50 30 C50 14 28 10 28 24 C28 30 50 30 50 30Z" fill="none" stroke="#7F77DD" stroke-width="5.5" stroke-linejoin="round"/>
+  <path d="M50 30 C50 14 72 10 72 24 C72 30 50 30 50 30Z" fill="none" stroke="#7F77DD" stroke-width="5.5" stroke-linejoin="round"/>
 </svg>
