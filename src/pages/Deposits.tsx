@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { WalletSetupPrompt } from "@/components/common/WalletSetupPrompt";
 import { DepositsTable } from "@/features/deposits/components/DepositsTable";
 
 export default function Deposits() {
@@ -18,6 +19,7 @@ export default function Deposits() {
           <h1 className="text-3xl font-bold mt-4">Deposit History</h1>
           <p className="text-muted-foreground mt-1">Payments collected towards your Treatcode wallet</p>
         </div>
+        <WalletSetupPrompt className="mb-6" />
         <DepositsTable />
       </main>
     </AppLayout>

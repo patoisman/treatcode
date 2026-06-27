@@ -6,6 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WalletSetupPrompt } from "@/components/common/WalletSetupPrompt";
+import { useProfile } from "@/features/auth/hooks/useProfile";
 import { useMandate } from "../hooks/useMandate";
 import { isMandateLive } from "../utils";
 import { MandateStatus } from "./MandateStatus";
@@ -14,7 +16,15 @@ import { CancelMandateDialog } from "./CancelMandateDialog";
 import { SetupFlow } from "./SetupFlow";
 
 export function DirectDebitPanel() {
+  const { data: profile } = useProfile();
   const { data: mandate, isLoading, isError } = useMandate();
+
+  // Users who haven't finished onboarding (e.g. an admin who skipped) can't run
+  // bank setup directly — setup-payment needs a pledge amount. Send them through
+  // /onboarding, which resumes at the right step.
+  if (profile && profile.onboarding_status !== "setup_complete") {
+    return <WalletSetupPrompt />;
+  }
 
   if (isLoading) {
     return (

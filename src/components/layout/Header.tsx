@@ -14,6 +14,7 @@ import {
 import { useSession } from "@/features/auth/hooks/useSession";
 import { useProfile } from "@/features/auth/hooks/useProfile";
 import { useSignOut } from "@/features/auth/hooks/useSignOut";
+import { setAdminLanding } from "@/features/admin/lib/adminLanding";
 
 export function Header() {
   const { session } = useSession();
@@ -37,6 +38,12 @@ export function Header() {
   };
 
   const handleNavigate = (path: string) => {
+    // Remember an admin's last explicit area choice so sign-in lands them back
+    // where they prefer (see adminLanding / SignIn redirect).
+    if (profile?.is_admin && profile.id) {
+      if (path === "/admin") setAdminLanding(profile.id, "admin");
+      else if (path === "/dashboard") setAdminLanding(profile.id, "dashboard");
+    }
     navigate(path);
     setMobileOpen(false);
   };

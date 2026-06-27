@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useSession } from "@/features/auth/hooks/useSession";
 import { useProfile } from "@/features/auth/hooks/useProfile";
 import { PledgeStep } from "@/features/onboarding/components/PledgeStep";
+import { AdminSkipControl } from "@/features/onboarding/components/AdminSkipControl";
 import { SetupFlow } from "@/features/directdebit/components/SetupFlow";
 
 function Wordmark() {
@@ -74,6 +75,8 @@ export default function Onboarding() {
             Your pledge amount has been saved. Complete the bank setup to activate your account.
           </p>
         )}
+
+        <AdminSkipControl />
       </div>
     </div>
   );

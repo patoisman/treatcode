@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { WalletSetupPrompt } from "@/components/common/WalletSetupPrompt";
 import { BrandCatalog } from "@/features/vouchers/components/BrandCatalog";
 import { RedemptionHistory } from "@/features/vouchers/components/RedemptionHistory";
 
@@ -21,6 +22,8 @@ export default function Redemptions() {
             Browse brands and redeem your balance for gift vouchers
           </p>
         </div>
+
+        <WalletSetupPrompt className="mb-8" />
 
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">Brands</h2>

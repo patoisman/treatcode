@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { WalletSetupPrompt } from "@/components/common/WalletSetupPrompt";
 import { BalanceCard } from "@/features/wallet/components/BalanceCard";
 import { LedgerList } from "@/features/wallet/components/LedgerList";
 
@@ -18,6 +19,7 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <main className="container mx-auto px-4 pt-24 pb-12">
+        <WalletSetupPrompt className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <BalanceCard />
 
