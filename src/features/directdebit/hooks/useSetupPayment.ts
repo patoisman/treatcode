@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { functionErrorMessage } from "@/lib/functionError";
 
 export interface SetupPaymentResult {
   authorisation_url?: string;
@@ -15,7 +16,14 @@ export function useSetupPayment() {
       const { data, error } = await supabase.functions.invoke("setup-payment", {
         body: {},
       });
-      if (error) throw error;
+      if (error) {
+        throw new Error(
+          await functionErrorMessage(
+            error,
+            "We couldn't start your Direct Debit setup. Please try again in a moment.",
+          ),
+        );
+      }
       return data as SetupPaymentResult;
     },
   });

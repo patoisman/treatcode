@@ -78,6 +78,26 @@ async function gcPost(path: string, body: unknown) {
   return res.json();
 }
 
+// Map a GoCardless subscription-update rejection reason to a calm, user-facing
+// message. These mostly only surface on LIVE (sandbox doesn't enforce them), so
+// before they'd fall through to an opaque 500. `null` => not a reason we translate,
+// so the caller should treat it as an unexpected error.
+function friendlyPledgeError(reason: string | null | undefined): string | null {
+  switch (reason) {
+    case "mandate_payments_require_approval":
+      return "This change needs approval from your bank before it can take effect. Please try again later, or contact support if it persists.";
+    case "subscription_not_active":
+    case "subscription_already_ended":
+      return "Your monthly deposit isn't active right now, so the amount can't be changed. Please contact support and we'll sort it out.";
+    case "validation_failed":
+      return "That amount couldn't be applied. Please choose an amount between £25 and £500.";
+    case "forbidden":
+      return "We couldn't update your deposit amount right now. Please try again, or contact support if it continues.";
+    default:
+      return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -190,6 +210,12 @@ Deno.serve(async (req: Request) => {
           );
           finalAmendmentCount = 0;
         } else {
+          // A known live-only rejection → return a specific, friendly message (not a 500).
+          const friendly = friendlyPledgeError(reason);
+          if (friendly) {
+            console.error("update-pledge GC rejection:", reason);
+            return json({ error: friendly, code: reason }, 422);
+          }
           throw err;
         }
       }
@@ -202,9 +228,10 @@ Deno.serve(async (req: Request) => {
 
     return json({ success: true, amendment_count: finalAmendmentCount });
   } catch (err) {
+    // Log the technical cause; show the user a calm, generic message.
     console.error("update-pledge:", err);
     return json(
-      { error: err instanceof Error ? err.message : "Internal error" },
+      { error: "We couldn't update your deposit amount. Please try again, or contact support if it continues." },
       500,
     );
   }

@@ -187,27 +187,29 @@ Deno.serve(async (req: Request) => {
       return json({ authorisation_url: flow.authorisation_url });
     }
 
-    // --- No existing setup: create customer (if needed) + billing request + flow ---
-    let gcCustomerId: string;
+    // --- No existing setup: create billing request (+ customer) + flow ---
+    //
+    // We deliberately do NOT call `POST /customers` directly. On live accounts whose
+    // payment pages aren't approved as scheme-rules-compliant, GoCardless restricts the
+    // direct Customers:Create endpoint (returns 403 forbidden) and requires the customer
+    // to be created via the Billing Requests API instead. Creating a billing request
+    // WITHOUT a customer link makes GoCardless mint the customer up front and return it in
+    // `links.customer` of the create response — the very same customer the hosted flow then
+    // fills in and that the mandate is ultimately issued against. We mirror it into
+    // gc_customers SYNCHRONOUSLY below, exactly as the old direct-create path did, so the
+    // deterministic webhook owner-resolution anchor ("gc_customers written before any
+    // webhook arrives" — see resolvePaymentOwner in gocardless-webhook) is fully preserved.
+    //
+    // If a customer was already minted for this user on a prior (failed/cancelled) attempt,
+    // we reuse it by linking it explicitly. Linking an EXISTING customer is permitted — it
+    // isn't a customer *creation* — and it avoids orphaning a fresh shell on each retry.
     const { data: existingCustomer } = await admin
       .from("gc_customers")
       .select("id")
       .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
       .maybeSingle();
-
-    if (existingCustomer) {
-      gcCustomerId = existingCustomer.id;
-    } else {
-      const gcCustomer = await gcPost("/customers", {
-        customers: { email: profile.email, given_name: givenName, family_name: familyName },
-      });
-      gcCustomerId = gcCustomer.customers.id;
-      await admin.from("gc_customers").insert({
-        id: gcCustomerId,
-        user_id: user.id,
-        email: profile.email,
-      });
-    }
 
     const brqData = await gcPost("/billing_requests", {
       billing_requests: {
@@ -222,10 +224,29 @@ Deno.serve(async (req: Request) => {
           description: "Treatcode Monthly Deposit",
         },
         fallback_enabled: true,
-        links: { customer: gcCustomerId },
+        // Reuse a prior customer when one exists; otherwise omit links so GoCardless
+        // creates the customer itself (the scheme-rules-compliant path).
+        ...(existingCustomer ? { links: { customer: existingCustomer.id } } : {}),
       },
     });
     const brq = brqData.billing_requests;
+
+    // Mirror the customer the billing request created/uses, synchronously, before any
+    // webhook can land. On a fresh setup this is the shell GoCardless just minted (returned
+    // in brq.links.customer); on a reuse it's the id we linked above. Either way it is the
+    // customer the mandate will be issued against, so gc_customers stays the reliable anchor.
+    const gcCustomerId: string | null =
+      brq.links?.customer ?? existingCustomer?.id ?? null;
+    if (!gcCustomerId) {
+      throw new Error("billing request created without a customer link");
+    }
+    if (!existingCustomer) {
+      await admin.from("gc_customers").insert({
+        id: gcCustomerId,
+        user_id: user.id,
+        email: profile.email,
+      });
+    }
 
     const flow = await createFlow(brq.id);
 
@@ -239,9 +260,11 @@ Deno.serve(async (req: Request) => {
 
     return json({ authorisation_url: flow.authorisation_url });
   } catch (err) {
+    // Log the real cause (GoCardless error, DB failure, etc.) for ourselves, but never
+    // leak it to the user — they get a calm, actionable message instead of raw API text.
     console.error("setup-payment:", err);
     return json(
-      { error: err instanceof Error ? err.message : "Internal error" },
+      { error: "We couldn't start your Direct Debit setup. Please try again in a moment. If it keeps happening, contact support." },
       500
     );
   }

@@ -1,23 +1,34 @@
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPence, formatShortDate } from "@/lib/format";
-import type { LedgerEntry } from "../types";
+import type { LedgerEntryWithScheme } from "../types";
 
 const ENTRY_LABELS: Record<string, string> = {
-  deposit_ibp: "Instant deposit",
+  // deposit_ibp is resolved by entryLabel() below (depends on the payment scheme).
   deposit_bacs: "Monthly deposit",
   redemption_debit: "Voucher redemption",
   redemption_refund: "Voucher refund",
   chargeback_reversal: "Chargeback reversal",
 };
 
+// The first deposit shares one entry_type (deposit_ibp) whether it was collected
+// instantly (faster_payments) or fell back to BACS. A ledger entry only exists once
+// the payment is CONFIRMED — i.e. the money has already landed — so timing copy isn't
+// needed here; we just name the method honestly rather than always claiming "Instant".
+function entryLabel(entry: LedgerEntryWithScheme): string {
+  if (entry.entry_type === "deposit_ibp") {
+    return entry.scheme === "faster_payments" ? "Instant deposit" : "First deposit";
+  }
+  return ENTRY_LABELS[entry.entry_type] ?? "Transaction";
+}
+
 interface LedgerRowProps {
-  entry: LedgerEntry;
+  entry: LedgerEntryWithScheme;
 }
 
 export function LedgerRow({ entry }: LedgerRowProps) {
   const isCredit = entry.is_credit;
-  const label = ENTRY_LABELS[entry.entry_type] ?? "Transaction";
+  const label = entryLabel(entry);
   const Icon = isCredit ? ArrowDownLeft : ArrowUpRight;
 
   return (

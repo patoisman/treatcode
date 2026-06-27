@@ -64,6 +64,13 @@ export function Header() {
           {isAuthenticated ? (
             <>
               <span className="text-sm text-muted-foreground">Welcome, {displayName}</span>
+              {/* Prominent way back into the app. Routes to /dashboard; ProtectedRoute
+                  redirects users with incomplete onboarding to /onboarding, which resumes
+                  their step — so this always lands them wherever they left off. */}
+              <Button size="sm" onClick={() => handleNavigate("/dashboard")}>
+                <Gift className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Button>
               {profile?.is_admin && (
                 <Button variant="outline" size="sm" onClick={() => handleNavigate("/admin")}>
                   <ShieldCheck className="h-4 w-4" />
